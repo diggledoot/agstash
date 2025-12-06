@@ -214,3 +214,43 @@ fn apply_prompts_on_existing_file_overwrite() -> Result<(), Box<dyn std::error::
 
     Ok(())
 }
+
+#[test]
+fn stash_fails_when_agents_missing() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = tempdir()?;
+    // Don't create AGENTS.md
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_agstash"));
+
+    cmd.env("HOME", dir.path())
+        .current_dir(&dir)
+        .arg("stash")
+        .assert()
+        .success() // Should still return 0 exit code according to main.rs logic (it prints error and returns Ok(()))
+        .stdout(
+            predicate::str::contains("AGENTS.md").and(predicate::str::contains("does not exist")),
+        );
+
+    Ok(())
+}
+
+#[test]
+fn apply_fails_when_stash_missing() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = tempdir()?;
+    let project_name = dir.path().file_name().unwrap().to_string_lossy();
+    // Don't create stash
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_agstash"));
+
+    cmd.env("HOME", dir.path())
+        .current_dir(&dir)
+        .arg("apply")
+        .assert()
+        .success() // Should still return 0 exit code
+        .stdout(
+            predicate::str::contains("No stash found for project")
+                .and(predicate::str::contains(project_name)),
+        );
+
+    Ok(())
+}
