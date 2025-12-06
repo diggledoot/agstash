@@ -1,4 +1,4 @@
-.PHONY: all build run test check fmt clippy clean help
+.PHONY: all build release run test check fmt clippy clean help
 
 # Default target
 all: help
@@ -6,6 +6,10 @@ all: help
 # Build the project
 build:
 	cargo build
+
+# Build for release
+release:
+	cargo build --release
 
 # Run the project
 run:
@@ -35,6 +39,7 @@ clean:
 help:
 	@echo "Available targets:"
 	@echo "  build   - Build the project project"
+	@echo "  release - Build the project in release mode"
 	@echo "  run     - Run the project"
 	@echo "  test    - Run tests"
 	@echo "  check   - Check code for errors"
