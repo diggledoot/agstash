@@ -57,106 +57,126 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Init => {
-            let path = std::path::Path::new("AGENTS.md");
-            if path.exists() {
-                println!("{} {}", "AGENTS.md".bold(), "already exists.".yellow());
-            } else {
-                std::fs::write(
-                    path,
-                    r#"# AGENTS
+        Commands::Init => handle_init()?,
+        Commands::Clean => handle_clean()?,
+        Commands::Stash => handle_stash()?,
+        Commands::Apply => handle_apply()?,
+        Commands::Uninstall => handle_uninstall()?,
+    }
+
+    Ok(())
+}
+
+/// Initialize a new AGENTS.md file
+fn handle_init() -> Result<()> {
+    let agents_file_path = std::path::Path::new("AGENTS.md");
+    if agents_file_path.exists() {
+        println!("{} {}", "AGENTS.md".bold(), "already exists.".yellow());
+    } else {
+        std::fs::write(
+            agents_file_path,
+            r#"# AGENTS
 
 - be concise and factual.
 - always test after changes are made.
 - create tests after a new feature is added.
 "#,
-                )?;
-                println!("{} AGENTS.md", "Created".green());
-            }
-        }
-        Commands::Clean => {
-            let path = std::path::Path::new("AGENTS.md");
-            if path.exists() {
-                std::fs::remove_file(path)?;
-                println!("{} AGENTS.md", "Removed".red());
-            } else {
-                println!("{} {}", "AGENTS.md".bold(), "does not exist.".yellow());
-            }
-        }
-        Commands::Stash => {
-            let root = get_project_root()?;
-            let project_name = root.file_name().unwrap_or_default().to_string_lossy();
-            let agents_path = root.join("AGENTS.md");
+        )?;
+        println!("{} AGENTS.md", "Created".green());
+    }
+    Ok(())
+}
 
-            if !agents_path.exists() {
-                println!(
-                    "{} {}",
-                    "AGENTS.md".bold(),
-                    "does not exist in project root.".yellow()
-                );
-                return Ok(());
-            }
+/// Remove the AGENTS.md file
+fn handle_clean() -> Result<()> {
+    let agents_file_path = std::path::Path::new("AGENTS.md");
+    if agents_file_path.exists() {
+        std::fs::remove_file(agents_file_path)?;
+        println!("{} AGENTS.md", "Removed".red());
+    } else {
+        println!("{} {}", "AGENTS.md".bold(), "does not exist.".yellow());
+    }
+    Ok(())
+}
 
-            let stash_path = get_stash_path(&project_name)?;
-            std::fs::copy(&agents_path, &stash_path)?;
-            println!(
-                "{} AGENTS.md for {}",
-                "Stashed".green(),
-                project_name.bold()
-            );
-        }
-        Commands::Apply => {
-            let root = get_project_root()?;
-            let project_name = root.file_name().unwrap_or_default().to_string_lossy();
-            let stash_path = get_stash_path(&project_name)?;
+/// Stash the AGENTS.md file globally
+fn handle_stash() -> Result<()> {
+    let root = get_project_root()?;
+    let project_name = root.file_name().unwrap_or_default().to_string_lossy();
+    let agents_path = root.join("AGENTS.md");
 
-            if !stash_path.exists() {
-                println!("No stash found for project {}", project_name.bold());
-                return Ok(());
-            }
+    if !agents_path.exists() {
+        println!(
+            "{} {}",
+            "AGENTS.md".bold(),
+            "does not exist in project root.".yellow()
+        );
+        return Ok(());
+    }
 
-            let agents_path = root.join("AGENTS.md");
-            if agents_path.exists() {
-                println!(
-                    "{} {} already exists. Overwrite? [y/N]",
-                    "Warning:".yellow().bold(),
-                    "AGENTS.md".bold()
-                );
+    let stash_path = get_stash_path(&project_name)?;
+    std::fs::copy(&agents_path, &stash_path)?;
+    println!(
+        "{} AGENTS.md for {}",
+        "Stashed".green(),
+        project_name.bold()
+    );
+    Ok(())
+}
 
-                let mut input = String::new();
-                std::io::stdin().read_line(&mut input)?;
-                let input = input.trim().to_lowercase();
+/// Apply the stashed AGENTS.md file
+fn handle_apply() -> Result<()> {
+    let root = get_project_root()?;
+    let project_name = root.file_name().unwrap_or_default().to_string_lossy();
+    let stash_path = get_stash_path(&project_name)?;
 
-                if input != "y" {
-                    println!("Aborted.");
-                    return Ok(());
-                }
-            }
+    if !stash_path.exists() {
+        println!("No stash found for project {}", project_name.bold());
+        return Ok(());
+    }
 
-            std::fs::copy(&stash_path, &agents_path)?;
-            println!(
-                "{} AGENTS.md for {}",
-                "Applied".green(),
-                project_name.bold()
-            );
-        }
-        Commands::Uninstall => {
-            let home_dir =
-                home::home_dir().ok_or_else(|| anyhow::anyhow!("Could not find home directory"))?;
-            let agstash_dir = home_dir.join(".agstash");
+    let agents_path = root.join("AGENTS.md");
+    if agents_path.exists() {
+        println!(
+            "{} {} already exists. Overwrite? [y/N]",
+            "Warning:".yellow().bold(),
+            "AGENTS.md".bold()
+        );
 
-            if agstash_dir.exists() {
-                std::fs::remove_dir_all(&agstash_dir)?;
-                println!("{} {}", "Removed".red(), agstash_dir.to_string_lossy());
-            } else {
-                println!(
-                    "{} {}",
-                    ".agstash directory".bold(),
-                    "does not exist.".yellow()
-                );
-            }
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        let input = input.trim().to_lowercase();
+
+        if input != "y" {
+            println!("Aborted.");
+            return Ok(());
         }
     }
 
+    std::fs::copy(&stash_path, &agents_path)?;
+    println!(
+        "{} AGENTS.md for {}",
+        "Applied".green(),
+        project_name.bold()
+    );
+    Ok(())
+}
+
+/// Remove the global .agstash directory
+fn handle_uninstall() -> Result<()> {
+    let home_dir =
+        home::home_dir().ok_or_else(|| anyhow::anyhow!("Could not find home directory"))?;
+    let agstash_dir = home_dir.join(".agstash");
+
+    if agstash_dir.exists() {
+        std::fs::remove_dir_all(&agstash_dir)?;
+        println!("{} {}", "Removed".red(), agstash_dir.to_string_lossy());
+    } else {
+        println!(
+            "{} {}",
+            ".agstash directory".bold(),
+            "does not exist.".yellow()
+        );
+    }
     Ok(())
 }
