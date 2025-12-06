@@ -20,6 +20,8 @@ enum Commands {
     Stash,
     /// Apply the stashed AGENTS.md file
     Apply,
+    /// List all stashed projects
+    List,
     /// Remove the global .agstash directory
     Uninstall,
 }
@@ -116,12 +118,63 @@ fn main() -> Result<()> {
             }
 
             let agents_path = root.join("AGENTS.md");
+            if agents_path.exists() {
+                println!(
+                    "{} {} already exists. Overwrite? [y/N]",
+                    "Warning:".yellow().bold(),
+                    "AGENTS.md".bold()
+                );
+
+                let mut input = String::new();
+                std::io::stdin().read_line(&mut input)?;
+                let input = input.trim().to_lowercase();
+
+                if input != "y" {
+                    println!("Aborted.");
+                    return Ok(());
+                }
+            }
+
             std::fs::copy(&stash_path, &agents_path)?;
             println!(
                 "{} AGENTS.md for {}",
                 "Applied".green(),
                 project_name.bold()
             );
+        }
+        Commands::List => {
+            let home_dir =
+                home::home_dir().ok_or_else(|| anyhow::anyhow!("Could not find home directory"))?;
+            let stash_dir = home_dir.join(".agstash").join("stashes");
+
+            if !stash_dir.exists() {
+                println!("No stashes found.");
+            } else {
+                let paths = std::fs::read_dir(stash_dir)?;
+
+                let mut projects = Vec::new();
+
+                for path in paths {
+                    let path = path?.path();
+                    if let Some(file_name) = path.file_name().and_then(|n| n.to_str()) {
+                        if file_name.starts_with("stash-") && file_name.ends_with(".md") {
+                            let project_name = &file_name[6..file_name.len() - 3];
+                            projects.push(project_name.to_string());
+                        }
+                    }
+                }
+
+                projects.sort();
+
+                if !projects.is_empty() {
+                    println!("{}", "Stashed projects:".green().bold());
+                    for project in projects {
+                        println!("  - {}", project);
+                    }
+                } else {
+                    println!("No stashes found.");
+                }
+            }
         }
         Commands::Uninstall => {
             let home_dir =

@@ -156,3 +156,80 @@ fn uninstall_removes_directory() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn list_shows_stashed_projects() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = tempdir()?;
+    let stash_dir = dir.path().join(".agstash").join("stashes");
+    std::fs::create_dir_all(&stash_dir)?;
+    std::fs::write(stash_dir.join("stash-myproject.md"), "content")?;
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_agstash"));
+
+    cmd.env("HOME", dir.path())
+        .current_dir(&dir)
+        .arg("list")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("myproject"));
+
+    Ok(())
+}
+
+#[test]
+fn apply_prompts_on_existing_file_abort() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = tempdir()?;
+    let project_name = dir.path().file_name().unwrap().to_string_lossy();
+
+    let file_path = dir.path().join("AGENTS.md");
+    std::fs::write(&file_path, "Original Content")?;
+
+    let stash_dir = dir.path().join(".agstash").join("stashes");
+    std::fs::create_dir_all(&stash_dir)?;
+    let stash_path = stash_dir.join(format!("stash-{}.md", project_name));
+    std::fs::write(&stash_path, "Stashed Content")?;
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_agstash"));
+
+    cmd.env("HOME", dir.path())
+        .current_dir(&dir)
+        .arg("apply")
+        .write_stdin("n\n")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Warning").and(predicate::str::contains("Aborted")));
+
+    let content = std::fs::read_to_string(file_path)?;
+    assert_eq!(content, "Original Content");
+
+    Ok(())
+}
+
+#[test]
+fn apply_prompts_on_existing_file_overwrite() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = tempdir()?;
+    let project_name = dir.path().file_name().unwrap().to_string_lossy();
+
+    let file_path = dir.path().join("AGENTS.md");
+    std::fs::write(&file_path, "Original Content")?;
+
+    let stash_dir = dir.path().join(".agstash").join("stashes");
+    std::fs::create_dir_all(&stash_dir)?;
+    let stash_path = stash_dir.join(format!("stash-{}.md", project_name));
+    std::fs::write(&stash_path, "Stashed Content")?;
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_agstash"));
+
+    cmd.env("HOME", dir.path())
+        .current_dir(&dir)
+        .arg("apply")
+        .write_stdin("y\n")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Warning").and(predicate::str::contains("Applied")));
+
+    let content = std::fs::read_to_string(file_path)?;
+    assert_eq!(content, "Stashed Content");
+
+    Ok(())
+}
