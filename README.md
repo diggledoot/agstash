@@ -17,6 +17,19 @@ The primary purpose of this tool is to provide a workflow for managing `AGENTS.m
 cargo install --path .
 ```
 
+## Uninstallation
+
+To completely remove the application and its data:
+
+1. Run the app's uninstall command to clean up data:
+   ```bash
+   agstash uninstall
+   ```
+2. Uninstall the binary using cargo:
+   ```bash
+   cargo uninstall agstash
+   ```
+
 ## Usage
 
 ```bash
