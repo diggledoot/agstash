@@ -156,12 +156,11 @@ fn main() -> Result<()> {
 
                 for path in paths {
                     let path = path?.path();
-                    if let Some(file_name) = path.file_name().and_then(|n| n.to_str()) {
-                        if file_name.starts_with("stash-") && file_name.ends_with(".md") {
+                    if let Some(file_name) = path.file_name().and_then(|n| n.to_str())
+                        && file_name.starts_with("stash-") && file_name.ends_with(".md") {
                             let project_name = &file_name[6..file_name.len() - 3];
                             projects.push(project_name.to_string());
                         }
-                    }
                 }
 
                 projects.sort();
