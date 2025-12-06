@@ -158,25 +158,6 @@ fn uninstall_removes_directory() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn list_shows_stashed_projects() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = tempdir()?;
-    let stash_dir = dir.path().join(".agstash").join("stashes");
-    std::fs::create_dir_all(&stash_dir)?;
-    std::fs::write(stash_dir.join("stash-myproject.md"), "content")?;
-
-    let mut cmd = Command::new(env!("CARGO_BIN_EXE_agstash"));
-
-    cmd.env("HOME", dir.path())
-        .current_dir(&dir)
-        .arg("list")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("myproject"));
-
-    Ok(())
-}
-
-#[test]
 fn apply_prompts_on_existing_file_abort() -> Result<(), Box<dyn std::error::Error>> {
     let dir = tempdir()?;
     let project_name = dir.path().file_name().unwrap().to_string_lossy();

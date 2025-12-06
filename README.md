@@ -34,8 +34,10 @@ agstash <COMMAND>
 - `stash`
     - Stash the `AGENTS.md` file globally. It identifies the project root and saves the file to `~/.agstash/stashes/stash-<project_name>.md`.
 
+
 - `apply`
     - Apply the stashed `AGENTS.md` file back to the project root.
+    - **Note**: If `AGENTS.md` already exists, you will be prompted to overwrite it.
 
 - `uninstall`
     - Remove the global `.agstash` directory and all stashed files.
