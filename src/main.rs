@@ -128,15 +128,15 @@ fn handle_stash() -> Result<()> {
 fn handle_apply() -> Result<()> {
     let root = get_project_root()?;
     let project_name = root.file_name().unwrap_or_default().to_string_lossy();
-    let stash_path = get_stash_path(&project_name)?;
+    let stash_file_path = get_stash_path(&project_name)?;
 
-    if !stash_path.exists() {
+    if !stash_file_path.exists() {
         println!("No stash found for project {}", project_name.bold());
         return Ok(());
     }
 
-    let agents_path = root.join("AGENTS.md");
-    if agents_path.exists() {
+    let agents_md_file_path = root.join("AGENTS.md");
+    if agents_md_file_path.exists() {
         println!(
             "{} {} already exists. Overwrite? [y/N]",
             "Warning:".yellow().bold(),
@@ -153,7 +153,7 @@ fn handle_apply() -> Result<()> {
         }
     }
 
-    std::fs::copy(&stash_path, &agents_path)?;
+    std::fs::copy(&stash_file_path, &agents_md_file_path)?;
     println!(
         "{} AGENTS.md for {}",
         "Applied".green(),
