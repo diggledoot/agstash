@@ -19,7 +19,11 @@ enum Commands {
     /// Stash the AGENTS.md file globally
     Stash,
     /// Apply the stashed AGENTS.md file
-    Apply,
+    Apply {
+        /// Overwrite AGENTS.md without prompting
+        #[arg(long)]
+        force: bool,
+    },
     /// Remove the global .agstash directory
     Uninstall,
 }
@@ -42,7 +46,9 @@ fn get_project_root() -> Result<std::path::PathBuf> {
             break;
         }
     }
-    Ok(std::env::current_dir()?)
+    Err(anyhow::anyhow!(
+        "Could not find project root (no .git or .gitignore found)"
+    ))
 }
 
 fn get_stash_path(project_name: &str) -> Result<std::path::PathBuf> {
@@ -60,11 +66,15 @@ fn main() -> Result<()> {
         Commands::Init => handle_init()?,
         Commands::Clean => handle_clean()?,
         Commands::Stash => handle_stash()?,
-        Commands::Apply => handle_apply()?,
+        Commands::Apply { force } => handle_apply(*force)?,
         Commands::Uninstall => handle_uninstall()?,
     }
 
     Ok(())
+}
+
+fn is_valid_agents(content: &str) -> bool {
+    content.trim_start().starts_with("# AGENTS")
 }
 
 /// Initialize a new AGENTS.md file
@@ -114,6 +124,16 @@ fn handle_stash() -> Result<()> {
         return Ok(());
     }
 
+    let agents_content = std::fs::read_to_string(&agents_path)?;
+    if !is_valid_agents(&agents_content) {
+        println!(
+            "{} {}",
+            "AGENTS.md content is invalid (missing '# AGENTS' header).".yellow(),
+            "Stash aborted.".yellow()
+        );
+        return Ok(());
+    }
+
     let stash_path = get_stash_path(&project_name)?;
     std::fs::copy(&agents_path, &stash_path)?;
     println!(
@@ -125,7 +145,7 @@ fn handle_stash() -> Result<()> {
 }
 
 /// Apply the stashed AGENTS.md file
-fn handle_apply() -> Result<()> {
+fn handle_apply(force: bool) -> Result<()> {
     let root = get_project_root()?;
     let project_name = root.file_name().unwrap_or_default().to_string_lossy();
     let stash_file_path = get_stash_path(&project_name)?;
@@ -135,8 +155,18 @@ fn handle_apply() -> Result<()> {
         return Ok(());
     }
 
+    let stash_content = std::fs::read_to_string(&stash_file_path)?;
+    if !is_valid_agents(&stash_content) {
+        println!(
+            "{} {}",
+            "Stash content is invalid (missing '# AGENTS' header).".yellow(),
+            "Apply aborted.".yellow()
+        );
+        return Ok(());
+    }
+
     let agents_md_file_path = root.join("AGENTS.md");
-    if agents_md_file_path.exists() {
+    if agents_md_file_path.exists() && !force {
         println!(
             "{} {} already exists. Overwrite? [y/N]",
             "Warning:".yellow().bold(),
