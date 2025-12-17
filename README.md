@@ -11,6 +11,10 @@ The primary purpose of this tool is to provide a workflow for managing `AGENTS.m
 - **Apply**: Restore the `AGENTS.md` from the global stash back to your project.
 - **Clean**: Remove the local `AGENTS.md`.
 
+## Requirements
+
+`agstash` requires a project root to be detected. It identifies the project root by looking for a `.git` directory or `.gitignore` file, starting from the current directory and walking up the directory tree. If no project root is found, commands that require it (`stash`, `apply`) will fail with an error.
+
 ## Installation
 
 ```bash
@@ -46,11 +50,13 @@ agstash <COMMAND>
 
 - `stash`
     - Stash the `AGENTS.md` file globally. It identifies the project root and saves the file to `~/.agstash/stashes/stash-<project_name>.md`.
-
+    - **Note**: The file must be a valid `AGENTS.md` file (must start with `# AGENTS`). Invalid files will be rejected.
 
 - `apply`
     - Apply the stashed `AGENTS.md` file back to the project root.
-    - **Note**: If `AGENTS.md` already exists, you will be prompted to overwrite it.
+    - **Options**:
+      - `--force`: Overwrite existing `AGENTS.md` without prompting.
+    - **Note**: If `AGENTS.md` already exists and `--force` is not used, you will be prompted to overwrite it. The stashed content must be valid (must start with `# AGENTS`).
 
 - `uninstall`
     - Remove the global `.agstash` directory and all stashed files.
