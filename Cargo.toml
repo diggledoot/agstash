@@ -8,7 +8,6 @@ description = "A CLI tool to stash and apply changes to AGENTS.md"
 clap = { version = "4.5.21", features = ["derive"] }
 anyhow = "1.0.93"
 colored = "2.1.0"
-indicatif = "0.17.9"
 home = "0.5.12"
 
 [dev-dependencies]
