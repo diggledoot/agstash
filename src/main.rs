@@ -1,11 +1,53 @@
-use anyhow::Result;
 use clap::builder::styling::{AnsiColor, Styles};
 use clap::{Parser, Subcommand};
-use colored::*;
+use log::{debug, info};
+use std::fmt;
+mod commands;
+mod utils;
+
+#[derive(Debug)]
+pub enum AgStashError {
+    ProjectRootNotFound,
+    HomeDirNotFound,
+    IoError(std::io::Error),
+    InvalidAgentsContent(String),
+}
+
+impl fmt::Display for AgStashError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AgStashError::ProjectRootNotFound => write!(
+                f,
+                "Could not find project root (no .git or .gitignore found)"
+            ),
+            AgStashError::HomeDirNotFound => write!(f, "Could not find home directory"),
+            AgStashError::IoError(e) => write!(f, "IO error: {}", e),
+            AgStashError::InvalidAgentsContent(msg) => write!(f, "Invalid AGENTS content: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for AgStashError {}
+
+impl From<std::io::Error> for AgStashError {
+    fn from(error: std::io::Error) -> Self {
+        AgStashError::IoError(error)
+    }
+}
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None, styles = styles(), disable_help_subcommand = true)]
+#[command(
+    version,
+    about,
+    long_about = None,
+    styles = styles(),
+    disable_help_subcommand = true
+)]
 struct Cli {
+    /// Enable verbose logging
+    #[arg(short, long, global = true)]
+    verbose: bool,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -36,177 +78,68 @@ fn styles() -> Styles {
         .placeholder(AnsiColor::Cyan.on_default())
 }
 
-fn get_project_root() -> Result<std::path::PathBuf> {
-    let mut current_dir = std::env::current_dir()?;
-    loop {
-        if current_dir.join(".git").exists() || current_dir.join(".gitignore").exists() {
-            return Ok(current_dir);
-        }
-        if !current_dir.pop() {
-            break;
-        }
-    }
-    Err(anyhow::anyhow!(
-        "Could not find project root (no .git or .gitignore found)"
-    ))
-}
+type Result<T> = std::result::Result<T, AgStashError>;
 
-fn get_stash_path(project_name: &str) -> Result<std::path::PathBuf> {
-    let home_dir =
-        home::home_dir().ok_or_else(|| anyhow::anyhow!("Could not find home directory"))?;
-    let stash_dir = home_dir.join(".agstash").join("stashes");
-    std::fs::create_dir_all(&stash_dir)?;
-    Ok(stash_dir.join(format!("stash-{}.md", project_name)))
-}
-
-fn main() -> Result<()> {
+fn main() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Commands::Init => handle_init()?,
-        Commands::Clean => handle_clean()?,
-        Commands::Stash => handle_stash()?,
-        Commands::Apply { force } => handle_apply(*force)?,
-        Commands::Uninstall => handle_uninstall()?,
-    }
-
-    Ok(())
-}
-
-fn is_valid_agents(content: &str) -> bool {
-    content.trim_start().starts_with("# AGENTS")
-}
-
-/// Initialize a new AGENTS.md file
-fn handle_init() -> Result<()> {
-    let agents_file_path = std::path::Path::new("AGENTS.md");
-    if agents_file_path.exists() {
-        println!("{} {}", "AGENTS.md".bold(), "already exists.".yellow());
+    // Initialize logging based on verbose flag
+    if cli.verbose {
+        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug")).init();
     } else {
-        std::fs::write(
-            agents_file_path,
-            r#"# AGENTS
-
-- be concise and factual.
-- always test after changes are made.
-- create tests after a new feature is added.
-"#,
-        )?;
-        println!("{} AGENTS.md", "Created".green());
-    }
-    Ok(())
-}
-
-/// Remove the AGENTS.md file
-fn handle_clean() -> Result<()> {
-    let agents_file_path = std::path::Path::new("AGENTS.md");
-    if agents_file_path.exists() {
-        std::fs::remove_file(agents_file_path)?;
-        println!("{} AGENTS.md", "Removed".red());
-    } else {
-        println!("{} {}", "AGENTS.md".bold(), "does not exist.".yellow());
-    }
-    Ok(())
-}
-
-/// Stash the AGENTS.md file globally
-fn handle_stash() -> Result<()> {
-    let root = get_project_root()?;
-    let project_name = root.file_name().unwrap_or_default().to_string_lossy();
-    let agents_path = root.join("AGENTS.md");
-
-    if !agents_path.exists() {
-        println!(
-            "{} {}",
-            "AGENTS.md".bold(),
-            "does not exist in project root.".yellow()
-        );
-        return Ok(());
+        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
     }
 
-    let agents_content = std::fs::read_to_string(&agents_path)?;
-    if !is_valid_agents(&agents_content) {
-        println!(
-            "{} {}",
-            "AGENTS.md content is invalid (missing '# AGENTS' header).".yellow(),
-            "Stash aborted.".yellow()
-        );
-        return Ok(());
-    }
+    info!("Starting agstash with command: {:?}", cli.command);
+    debug!("Verbose mode enabled");
 
-    let stash_path = get_stash_path(&project_name)?;
-    std::fs::copy(&agents_path, &stash_path)?;
-    println!(
-        "{} AGENTS.md for {}",
-        "Stashed".green(),
-        project_name.bold()
-    );
-    Ok(())
-}
-
-/// Apply the stashed AGENTS.md file
-fn handle_apply(force: bool) -> Result<()> {
-    let root = get_project_root()?;
-    let project_name = root.file_name().unwrap_or_default().to_string_lossy();
-    let stash_file_path = get_stash_path(&project_name)?;
-
-    if !stash_file_path.exists() {
-        println!("No stash found for project {}", project_name.bold());
-        return Ok(());
-    }
-
-    let stash_content = std::fs::read_to_string(&stash_file_path)?;
-    if !is_valid_agents(&stash_content) {
-        println!(
-            "{} {}",
-            "Stash content is invalid (missing '# AGENTS' header).".yellow(),
-            "Apply aborted.".yellow()
-        );
-        return Ok(());
-    }
-
-    let agents_md_file_path = root.join("AGENTS.md");
-    if agents_md_file_path.exists() && !force {
-        println!(
-            "{} {} already exists. Overwrite? [y/N]",
-            "Warning:".yellow().bold(),
-            "AGENTS.md".bold()
-        );
-
-        let mut input = String::new();
-        std::io::stdin().read_line(&mut input)?;
-        let input = input.trim().to_lowercase();
-
-        if input != "y" {
-            println!("Aborted.");
-            return Ok(());
+    let result = match &cli.command {
+        Commands::Init => {
+            info!("Executing init command");
+            commands::handle_init()
         }
-    }
+        Commands::Clean => {
+            info!("Executing clean command");
+            commands::handle_clean()
+        }
+        Commands::Stash => {
+            info!("Executing stash command");
+            commands::handle_stash()
+        }
+        Commands::Apply { force } => {
+            info!("Executing apply command with force: {}", force);
+            commands::handle_apply(*force)
+        }
+        Commands::Uninstall => {
+            info!("Executing uninstall command");
+            commands::handle_uninstall()
+        }
+    };
 
-    std::fs::copy(&stash_file_path, &agents_md_file_path)?;
-    println!(
-        "{} AGENTS.md for {}",
-        "Applied".green(),
-        project_name.bold()
-    );
-    Ok(())
+    if let Err(e) = result {
+        eprintln!("Error: {}", e);
+        std::process::exit(1);
+    }
+    info!("Command executed successfully");
 }
 
-/// Remove the global .agstash directory
-fn handle_uninstall() -> Result<()> {
-    let home_dir =
-        home::home_dir().ok_or_else(|| anyhow::anyhow!("Could not find home directory"))?;
-    let agstash_dir = home_dir.join(".agstash");
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    if agstash_dir.exists() {
-        std::fs::remove_dir_all(&agstash_dir)?;
-        println!("{} {}", "Removed".red(), agstash_dir.to_string_lossy());
-    } else {
-        println!(
-            "{} {}",
-            ".agstash directory".bold(),
-            "does not exist.".yellow()
-        );
+    #[test]
+    fn test_is_valid_agents() {
+        // Valid cases
+        assert!(utils::is_valid_agents("# AGENTS"));
+        assert!(utils::is_valid_agents("# AGENTS\n"));
+        assert!(utils::is_valid_agents("  # AGENTS")); // Leading spaces
+        assert!(utils::is_valid_agents("# AGENTS\n\n- content"));
+
+        // Invalid cases
+        assert!(!utils::is_valid_agents(""));
+        assert!(!utils::is_valid_agents("# AGENT")); // Wrong header
+        assert!(!utils::is_valid_agents("- content")); // No header
+        assert!(!utils::is_valid_agents(" # AGENT")); // Space before #
+        assert!(!utils::is_valid_agents("AGENTS")); // Missing #
     }
-    Ok(())
 }

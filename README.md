@@ -1,38 +1,21 @@
 # agstash
 
-`agstash` is a CLI tool designed to manage `AGENTS.md` files. It allows you to create, clean, stash, and apply these files, acting effectively as a "stash" for your agent instructions or context that you want to persist or transfer between sessions/states of a project, separate from your main version control.
+`agstash` is a CLI tool designed to manage `AGENTS.md` files. It allows you to create, clean, stash, and apply these files, acting effectively as a "stash" for your agent instructions or context that you want to persist or transfer between sessions/states of a project.
 
 ## Purpose
 
-The primary purpose of this tool is to provide a workflow for managing `AGENTS.md` files. These files are typically used to store instructions, context, or rules for AI agents working on your codebase. `agstash` helps you:
+`agstash` helps you manage AI agent instructions stored in `AGENTS.md` files:
 
-- **Init**: Quickly create a new `AGENTS.md` with default best practices.
-- **Stash**: Save your current `AGENTS.md` to a global storage (`~/.agstash`) keyed by your project folder name. This is useful if you want to temporarily save the state of your agent instructions.
-- **Apply**: Restore the `AGENTS.md` from the global stash back to your project.
-- **Clean**: Remove the local `AGENTS.md`.
-
-## Requirements
-
-`agstash` requires a project root to be detected. It identifies the project root by looking for a `.git` directory or `.gitignore` file, starting from the current directory and walking up the directory tree. If no project root is found, commands that require it (`stash`, `apply`) will fail with an error.
+- **Init**: Create a new `AGENTS.md` with default best practices
+- **Stash**: Save your current `AGENTS.md` to global storage
+- **Apply**: Restore the `AGENTS.md` from the global stash back to your project
+- **Clean**: Remove the local `AGENTS.md`
 
 ## Installation
 
 ```bash
 cargo install --path .
 ```
-
-## Uninstallation
-
-To completely remove the application and its data:
-
-1. Run the app's uninstall command to clean up data:
-   ```bash
-   agstash uninstall
-   ```
-2. Uninstall the binary using cargo:
-   ```bash
-   cargo uninstall agstash
-   ```
 
 ## Usage
 
@@ -42,25 +25,11 @@ agstash <COMMAND>
 
 ### Commands
 
-- `init`
-    - Initialize a new `AGENTS.md` file in the current directory (or project root).
-    
-- `clean`
-    - Remove the `AGENTS.md` file from the current directory.
-
-- `stash`
-    - Stash the `AGENTS.md` file globally. It identifies the project root and saves the file to `~/.agstash/stashes/stash-<project_name>.md`.
-    - **Note**: The file must be a valid `AGENTS.md` file (must start with `# AGENTS`). Invalid files will be rejected.
-
-- `apply`
-    - Apply the stashed `AGENTS.md` file back to the project root.
-    - **Options**:
-      - `--force`: Overwrite existing `AGENTS.md` without prompting.
-    - **Note**: If `AGENTS.md` already exists and `--force` is not used, you will be prompted to overwrite it. The stashed content must be valid (must start with `# AGENTS`).
-
-- `uninstall`
-    - Remove the global `.agstash` directory and all stashed files.
-    - **Warning**: This action is irreversible.
+- **`init`** - Create a new `AGENTS.md` file in the current directory
+- **`clean`** - Remove the `AGENTS.md` file from the current directory
+- **`stash`** - Save the `AGENTS.md` file to global storage (`~/.agstash/stashes/`)
+- **`apply`** - Restore the stashed `AGENTS.md` file back to your project (with `--force` option to overwrite without prompting)
+- **`uninstall`** - Remove the global `.agstash` directory and all stashed files
 
 ## Build
 

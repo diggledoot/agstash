@@ -180,9 +180,7 @@ fn apply_prompts_on_existing_file_abort() -> Result<(), Box<dyn std::error::Erro
         .write_stdin("n\n")
         .assert()
         .success()
-        .stdout(
-            predicate::str::contains("Warning").and(predicate::str::contains("Aborted")),
-        );
+        .stdout(predicate::str::contains("Warning").and(predicate::str::contains("Aborted")));
 
     let content = std::fs::read_to_string(file_path)?;
     assert_eq!(content, "Original Content");
@@ -213,9 +211,7 @@ fn apply_prompts_on_existing_file_overwrite() -> Result<(), Box<dyn std::error::
         .write_stdin("y\n")
         .assert()
         .success()
-        .stdout(
-            predicate::str::contains("Warning").and(predicate::str::contains("Applied")),
-        );
+        .stdout(predicate::str::contains("Warning").and(predicate::str::contains("Applied")));
 
     let content = std::fs::read_to_string(file_path)?;
     assert_eq!(content, stash_content);
@@ -237,8 +233,7 @@ fn stash_fails_when_agents_missing() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success() // Should still return 0 exit code according to main.rs logic (it prints error and returns Ok(()))
         .stdout(
-            predicate::str::contains("AGENTS.md")
-                .and(predicate::str::contains("does not exist")),
+            predicate::str::contains("AGENTS.md").and(predicate::str::contains("does not exist")),
         );
 
     Ok(())
