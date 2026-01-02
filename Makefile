@@ -1,4 +1,4 @@
-.PHONY: all build release run test check fmt clippy clean help
+.PHONY: all build release run test check fmt clippy clean update help
 
 # Default target
 all: help
@@ -35,6 +35,10 @@ clippy:
 clean:
 	cargo clean
 
+# Update dependencies
+update:
+	cargo update
+
 # Show help
 help:
 	@echo "Available targets:"
@@ -46,4 +50,5 @@ help:
 	@echo "  fmt     - Format code"
 	@echo "  clippy  - Run linter"
 	@echo "  clean   - Clean build artifacts"
+	@echo "  update  - Update dependencies"
 	@echo "  help    - Show this help message"
