@@ -376,3 +376,9 @@ fn apply_rejects_invalid_stash_content() -> Result<(), Box<dyn std::error::Error
 
     Ok(())
 }
+
+// Note: The home directory tests are difficult to implement with integration tests
+// because the home::home_dir() function uses system-level calls that may still find
+// a home directory even when the HOME environment variable is unset.
+// Instead, we rely on the unit tests in src/utils/mod.rs that properly test
+// the error handling when home directory is not found.

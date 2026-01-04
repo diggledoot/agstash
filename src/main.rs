@@ -142,4 +142,27 @@ mod tests {
         assert!(!utils::is_valid_agents(" # AGENT")); // Space before #
         assert!(!utils::is_valid_agents("AGENTS")); // Missing #
     }
+
+    #[test]
+    fn test_agstash_error_display() {
+        assert_eq!(
+            format!("{}", AgStashError::ProjectRootNotFound),
+            "Could not find project root (no .git or .gitignore found)"
+        );
+        assert_eq!(
+            format!("{}", AgStashError::HomeDirNotFound),
+            "Could not find home directory"
+        );
+
+        let io_error = std::io::Error::new(std::io::ErrorKind::NotFound, "file not found");
+        assert_eq!(
+            format!("{}", AgStashError::IoError(io_error)),
+            "IO error: file not found"
+        );
+
+        assert_eq!(
+            format!("{}", AgStashError::InvalidAgentsContent("test".to_string())),
+            "Invalid AGENTS content: test"
+        );
+    }
 }
