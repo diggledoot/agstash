@@ -5,11 +5,19 @@ use std::fmt;
 mod commands;
 mod utils;
 
+/// Custom error type for the agstash application
+///
+/// This enum represents all possible errors that can occur in the agstash application.
+/// Each variant corresponds to a specific error condition that needs to be handled appropriately.
 #[derive(Debug)]
 pub enum AgStashError {
+    /// Project root could not be found (no .git or .gitignore directory/file)
     ProjectRootNotFound,
+    /// Home directory could not be found
     HomeDirNotFound,
+    /// IO error occurred during file operations
     IoError(std::io::Error),
+    /// AGENTS.md content is invalid (missing '# AGENTS' header)
     InvalidAgentsContent(String),
 }
 
@@ -35,6 +43,10 @@ impl From<std::io::Error> for AgStashError {
     }
 }
 
+/// Command-line interface definition for the agstash application
+///
+/// This struct defines the CLI structure using clap, including all available commands
+/// and their arguments. The verbose flag enables detailed logging output.
 #[derive(Parser, Debug)]
 #[command(
     version,
@@ -44,7 +56,7 @@ impl From<std::io::Error> for AgStashError {
     disable_help_subcommand = true
 )]
 struct Cli {
-    /// Enable verbose logging
+    /// Enable verbose logging for detailed output
     #[arg(short, long, global = true)]
     verbose: bool,
 
@@ -52,21 +64,29 @@ struct Cli {
     command: Commands,
 }
 
+/// Available commands for the agstash application
+///
+/// These commands represent the core functionality of the agstash tool:
+/// - Init: Create a new AGENTS.md file
+/// - Clean: Remove the AGENTS.md file
+/// - Stash: Store the AGENTS.md file in a global location
+/// - Apply: Retrieve and apply a stashed AGENTS.md file
+/// - Uninstall: Remove the global .agstash directory
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Initialize a new AGENTS.md file
+    /// Initialize a new AGENTS.md file in the current directory
     Init,
-    /// Remove the AGENTS.md file
+    /// Remove the AGENTS.md file from the current directory
     Clean,
-    /// Stash the AGENTS.md file globally
+    /// Stash the AGENTS.md file to a global location for later retrieval
     Stash,
-    /// Apply the stashed AGENTS.md file
+    /// Apply a previously stashed AGENTS.md file to the current directory
     Apply {
-        /// Overwrite AGENTS.md without prompting
+        /// Overwrite existing AGENTS.md file without prompting for confirmation
         #[arg(long)]
         force: bool,
     },
-    /// Remove the global .agstash directory
+    /// Remove the global .agstash directory and all stashed files
     Uninstall,
 }
 
@@ -78,12 +98,23 @@ fn styles() -> Styles {
         .placeholder(AnsiColor::Cyan.on_default())
 }
 
+/// Custom Result type that uses our AgStashError
+///
+/// This type alias makes it easier to work with our custom error type throughout the application.
 type Result<T> = std::result::Result<T, AgStashError>;
 
+/// Main entry point for the agstash application
+///
+/// This function handles:
+/// 1. Parsing command-line arguments
+/// 2. Setting up logging based on the verbose flag
+/// 3. Executing the appropriate command based on user input
+/// 4. Handling errors and exiting appropriately
 fn main() {
     let cli = Cli::parse();
 
     // Initialize logging based on verbose flag
+    // This allows users to get detailed output when needed for debugging
     if cli.verbose {
         env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug")).init();
     } else {
@@ -93,6 +124,8 @@ fn main() {
     info!("Starting agstash with command: {:?}", cli.command);
     debug!("Verbose mode enabled");
 
+    // Execute the appropriate command handler based on user input
+    // Each command is handled by a dedicated function in the commands module
     let result = match &cli.command {
         Commands::Init => {
             info!("Executing init command");
@@ -116,6 +149,8 @@ fn main() {
         }
     };
 
+    // Handle any errors that occurred during command execution
+    // If an error occurred, print it to stderr and exit with code 1
     if let Err(e) = result {
         eprintln!("Error: {}", e);
         std::process::exit(1);

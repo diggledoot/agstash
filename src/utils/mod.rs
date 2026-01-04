@@ -1,26 +1,53 @@
 use std::path::PathBuf;
 
 pub fn is_valid_agents(content: &str) -> bool {
+    // Assert input validity - content should not be too large to process safely
     assert!(
         content.len() < 10_000_000,
         "Content too large to process safely"
-    ); // Prevent potential memory issues
+    );
+
+    // For empty content, return false rather than panicking
+    // This is more appropriate for validation functions that might legitimately receive empty input
+    if content.is_empty() {
+        return false;
+    }
+
     basic_validation(content)
 }
 
 fn basic_validation(content: &str) -> bool {
+    // The caller ensures content is not empty, so we can proceed with validation
     let trimmed_start = content.trim_start();
+    // Assert that trim operation is working as expected
     assert!(
         trimmed_start.len() <= content.len(),
         "Trim should not increase length"
     );
+
+    // The function already returns a boolean value
     trimmed_start.starts_with("# AGENTS")
 }
 
 pub fn get_project_root() -> Result<PathBuf, crate::AgStashError> {
     let mut current_dir = std::env::current_dir()?;
+
+    // Assert that the current directory exists before starting search
+    assert!(
+        current_dir.exists(),
+        "Current directory should exist before searching for project root"
+    );
+
     loop {
+        // Assert that the directory we're checking exists
+        assert!(current_dir.exists(), "Directory being checked should exist");
+
         if current_dir.join(".git").exists() || current_dir.join(".gitignore").exists() {
+            // Assert that the found path is valid before returning
+            assert!(
+                current_dir.is_absolute(),
+                "Project root should be an absolute path"
+            );
             return Ok(current_dir);
         }
         if !current_dir.pop() {
@@ -36,15 +63,49 @@ fn get_home_dir() -> Option<PathBuf> {
 }
 
 pub fn get_stash_path(project_name: &str) -> Result<PathBuf, crate::AgStashError> {
+    // Assert input validity - project name should not be empty
+    assert!(!project_name.is_empty(), "Project name should not be empty");
+
     let home_dir = get_home_dir().ok_or(crate::AgStashError::HomeDirNotFound)?;
+
+    // The home directory path is retrieved from the system, so it should be valid
+    // Note: home_dir might not exist yet, so we allow this
+
     let stash_dir = home_dir.join(".agstash").join("stashes");
     std::fs::create_dir_all(&stash_dir)?;
-    Ok(stash_dir.join(format!("stash-{}.md", project_name)))
+
+    // Assert that the stash directory was created successfully
+    assert!(
+        stash_dir.exists(),
+        "Stash directory should exist after creation"
+    );
+
+    let stash_path = stash_dir.join(format!("stash-{}.md", project_name));
+
+    // Assert output validity - ensure the path is valid
+    assert!(
+        !stash_path.as_os_str().is_empty(),
+        "Stash path should not be empty"
+    );
+
+    Ok(stash_path)
 }
 
 pub fn get_agstash_dir() -> Result<PathBuf, crate::AgStashError> {
     let home_dir = get_home_dir().ok_or(crate::AgStashError::HomeDirNotFound)?;
-    Ok(home_dir.join(".agstash"))
+
+    // The home directory path is retrieved from the system, so it should be valid
+    // Note: home_dir might not exist yet, so we allow this
+
+    let agstash_dir = home_dir.join(".agstash");
+
+    // Assert output validity - ensure the path is valid
+    assert!(
+        !agstash_dir.as_os_str().is_empty(),
+        "Agstash directory path should not be empty"
+    );
+
+    Ok(agstash_dir)
 }
 
 #[cfg(test)]
@@ -151,7 +212,7 @@ mod tests {
         let result = get_stash_path("testProject123");
         assert!(result.is_ok());
 
-        let result = get_stash_path("test project with spaces");  // This creates a valid filename
+        let result = get_stash_path("test project with spaces"); // This creates a valid filename
         assert!(result.is_ok());
 
         // Clean up
@@ -170,7 +231,10 @@ mod tests {
         std::env::set_current_dir(temp_dir.path()).unwrap();
 
         let result = get_project_root();
-        assert!(matches!(result, Err(crate::AgStashError::ProjectRootNotFound)));
+        assert!(matches!(
+            result,
+            Err(crate::AgStashError::ProjectRootNotFound)
+        ));
 
         // Restore original directory
         std::env::set_current_dir(original_dir).unwrap();
