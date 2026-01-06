@@ -1,6 +1,6 @@
 # Makefile for agstash Go project
 
-.PHONY: build test test-coverage clean fmt check all
+.PHONY: build test test-coverage clean clean-coverage fmt check all
 
 # Build the project
 build:
@@ -17,7 +17,11 @@ test-coverage:
 
 # Clean build artifacts
 clean:
-	rm -rf bin/
+	rm -rf bin/ coverage.out coverage.html
+
+# Clean coverage files
+clean-coverage:
+	rm -f coverage.out coverage.html
 
 # Format code
 fmt:

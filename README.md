@@ -48,11 +48,7 @@ The project includes a Makefile with common development tasks:
 ```bash
 make build          # Build the project
 make test           # Run tests
-make test-coverage  # Run tests with coverage
 make clean          # Clean build artifacts
-make fmt            # Format code
-make check          # Run all checks (fmt, test)
-make all            # Build all
 ```
 
 ## Testing
