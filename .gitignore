@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+/bin
 
 # Go build artifacts
 *.o
