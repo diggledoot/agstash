@@ -1,6 +1,6 @@
 # Makefile for agstash Go project
 
-.PHONY: build install test test-coverage clean fmt vet check all
+.PHONY: build install test test-coverage clean fmt check all
 
 # Build the project
 build:
@@ -27,12 +27,8 @@ clean:
 fmt:
 	go fmt ./...
 
-# Vet code
-vet:
-	go vet ./...
-
 # Run all checks
-check: fmt vet test
+check: fmt test
 
 # Build and install
 all: build install

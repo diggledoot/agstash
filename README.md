@@ -4,12 +4,7 @@
 
 ## Purpose
 
-`agstash` helps you manage AI agent instructions stored in `AGENTS.md` files:
-
-- **Init**: Create a new `AGENTS.md` with default best practices
-- **Stash**: Save your current `AGENTS.md` to global storage
-- **Apply**: Restore the `AGENTS.md` from the global stash back to your project
-- **Clean**: Remove the local `AGENTS.md`
+`agstash` helps you manage AI agent instructions stored in `AGENTS.md` files.
 
 ## Installation
 
@@ -32,13 +27,10 @@ go build -o agstash cmd/agstash/main.go
 agstash <COMMAND>
 ```
 
-### Commands
-
-- **`init`** - Create a new `AGENTS.md` file in the current directory
-- **`clean`** - Remove the `AGENTS.md` file from the current directory
-- **`stash`** - Save the `AGENTS.md` file to global storage (`~/.agstash/stashes/`)
-- **`apply`** - Restore the stashed `AGENTS.md` file back to your project (with `--force` option to overwrite without prompting)
-- **`uninstall`** - Remove the global `.agstash` directory and all stashed files
+To see available commands, run:
+```bash
+agstash help
+```
 
 ## Build
 
@@ -46,6 +38,21 @@ To build the project locally:
 
 ```bash
 go build -o agstash cmd/agstash/main.go
+```
+
+## Development
+
+The project includes a Makefile with common development tasks:
+
+```bash
+make build          # Build the project
+make install        # Install the project
+make test           # Run tests
+make test-coverage  # Run tests with coverage
+make clean          # Clean build artifacts
+make fmt            # Format code
+make check          # Run all checks (fmt, test)
+make all            # Build and install
 ```
 
 ## Testing

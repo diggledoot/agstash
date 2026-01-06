@@ -174,7 +174,7 @@ func TestCopyFile(t *testing.T) {
 func TestIsValidAgentsLargeContentPanics(t *testing.T) {
 	// Create a string larger than 10MB
 	largeContent := strings.Repeat("a", 10_000_001) // 10MB + 1 character
-	
+
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("Expected panic for large content")
@@ -182,14 +182,14 @@ func TestIsValidAgentsLargeContentPanics(t *testing.T) {
 			t.Errorf("Expected panic message 'Content too large to process safely', got %v", r)
 		}
 	}()
-	
+
 	IsValidAgents(largeContent)
 }
 
 func TestIsValidAgentsMaxSizeAllowed(t *testing.T) {
 	// Create a string just under the limit to ensure it doesn't panic
 	maxSizeContent := "# AGENTS\n" + strings.Repeat("a", 9_999_990) // Just under 10MB
-	
+
 	// This should not panic and should return true since it starts with "# AGENTS"
 	if !IsValidAgents(maxSizeContent) {
 		t.Error("Expected content just under limit to be valid")
