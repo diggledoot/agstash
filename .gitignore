@@ -4,8 +4,6 @@
 *.dll
 *.so
 *.dylib
-agstash
-agstash.exe
 
 # Go build artifacts
 *.o
