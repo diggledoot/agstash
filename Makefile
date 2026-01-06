@@ -1,54 +1,40 @@
-.PHONY: all build release run test check fmt clippy clean update help
-
-# Default target
-all: help
+# Makefile for agstash Go project
 
 # Build the project
 build:
-	cargo build
+	go build -o bin/agstash cmd/agstash/main.go
 
-# Build for release
-release:
-	cargo build --release
-
-# Run the project
-run:
-	cargo run
+# Install the project
+install:
+	go install cmd/agstash/main.go
 
 # Run tests
 test:
-	cargo test
+	go test ./internal/... ./tests/...
 
-# Check for errors without generating code (faster than build)
-check:
-	cargo check
+# Run all tests including verbose output
+test-verbose:
+	go test -v ./internal/... ./tests/...
 
-# Format code
-fmt:
-	cargo fmt
-
-# Run clippy for linting
-clippy:
-	cargo clippy -- -D warnings
+# Run tests with coverage
+test-coverage:
+	go test -coverprofile=coverage.out ./internal/... ./tests/...
+	go tool cover -html=coverage.out -o coverage.html
 
 # Clean build artifacts
 clean:
-	cargo clean
+	rm -rf bin/
 
-# Update dependencies
-update:
-	cargo update
+# Format code
+fmt:
+	go fmt ./...
 
-# Show help
-help:
-	@echo "Available targets:"
-	@echo "  build   - Build the project project"
-	@echo "  release - Build the project in release mode"
-	@echo "  run     - Run the project"
-	@echo "  test    - Run tests"
-	@echo "  check   - Check code for errors"
-	@echo "  fmt     - Format code"
-	@echo "  clippy  - Run linter"
-	@echo "  clean   - Clean build artifacts"
-	@echo "  update  - Update dependencies"
-	@echo "  help    - Show this help message"
+# Vet code
+vet:
+	go vet ./...
+
+# Run all checks
+check: fmt vet test
+
+# Build and install
+all: build install

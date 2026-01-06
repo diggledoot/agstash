@@ -14,7 +14,16 @@
 ## Installation
 
 ```bash
-cargo install --path .
+go install agstash
+```
+
+Or build from source:
+
+```bash
+git clone <repository-url>
+cd agstash
+go build -o agstash cmd/agstash/main.go
+./agstash --help
 ```
 
 ## Usage
@@ -36,5 +45,19 @@ agstash <COMMAND>
 To build the project locally:
 
 ```bash
-cargo build --release
+go build -o agstash cmd/agstash/main.go
+```
+
+## Testing
+
+To run unit tests:
+
+```bash
+go test ./internal/... ./tests/...
+```
+
+To run all tests:
+
+```bash
+go test ./...
 ```
