@@ -1,5 +1,7 @@
 # Makefile for agstash Go project
 
+.PHONY: build install test test-coverage clean fmt vet check all
+
 # Build the project
 build:
 	go build -o bin/agstash cmd/agstash/main.go
@@ -11,10 +13,6 @@ install:
 # Run tests
 test:
 	go test ./internal/... ./tests/...
-
-# Run all tests including verbose output
-test-verbose:
-	go test -v ./internal/... ./tests/...
 
 # Run tests with coverage
 test-coverage:

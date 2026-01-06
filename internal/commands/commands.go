@@ -141,7 +141,10 @@ func HandleApply(force bool) error {
 	needsConfirmation := utils.FileExists(agentsMdFilePath) && !force
 	if needsConfirmation {
 		log.Printf("INFO: AGENTS.md exists and force is false, prompting user")
-		fmt.Printf("%s %s already exists. Overwrite? [y/N]\n", colorString("Warning:", Yellow+Bold), colorString("AGENTS.md", Bold))
+		fmt.Printf("\n%s %s already exists in the current directory.\n", colorString("WARNING:", Yellow+Bold), colorString("AGENTS.md", Bold))
+		fmt.Printf("Do you want to replace it with the stashed version?\n")
+		fmt.Printf("This action will permanently overwrite the current file.\n\n")
+		fmt.Printf("Type 'yes' to confirm or 'no' to cancel [y/N]: ")
 
 		userConfirmed, err := getUserConfirmation()
 		if err != nil {
@@ -149,10 +152,11 @@ func HandleApply(force bool) error {
 		}
 		if !userConfirmed {
 			log.Printf("INFO: User declined to overwrite, aborting apply")
-			fmt.Printf("Aborted.\n")
+			fmt.Printf("\nOperation cancelled. %s was not modified.\n", colorString("AGENTS.md", Bold))
 			return nil
 		} else {
 			log.Printf("INFO: User confirmed overwrite")
+			fmt.Printf("\nConfirmed. Applying stashed %s...\n", colorString("AGENTS.md", Bold))
 		}
 	} else {
 		log.Printf("INFO: No existing AGENTS.md or force is true, proceeding with apply")
@@ -166,7 +170,16 @@ func getUserConfirmation() (bool, error) {
 	scanner := bufio.NewScanner(os.Stdin)
 	if scanner.Scan() {
 		input := strings.TrimSpace(strings.ToLower(scanner.Text()))
-		return input == "y" || input == "yes", nil
+		// Accept various forms of "yes"
+		if input == "y" || input == "yes" || input == "ye" || input == "yep" || input == "yeah" {
+			return true, nil
+		}
+		// Accept various forms of "no" or default to no
+		if input == "n" || input == "no" || input == "nope" || input == "" {
+			return false, nil
+		}
+		// If input doesn't match expected values, default to false (no)
+		return false, nil
 	}
 	return false, scanner.Err()
 }
