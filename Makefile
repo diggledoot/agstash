@@ -8,11 +8,11 @@ build:
 
 # Run tests
 test:
-	go test ./internal/... ./tests/...
+	`go env GOPATH`/bin/gotestsum -- ./internal/... ./tests/...
 
 # Run tests with coverage
 test-coverage:
-	go test -coverprofile=coverage.out ./internal/... ./tests/...
+	`go env GOPATH`/bin/gotestsum --format=testname -- -coverprofile=coverage.out ./internal/... ./tests/...
 	go tool cover -html=coverage.out -o coverage.html
 
 # Clean build artifacts

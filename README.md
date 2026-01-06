@@ -57,14 +57,26 @@ make all            # Build all
 
 ## Testing
 
-To run unit tests:
+To run unit tests with gotestsum:
 
 ```bash
-go test ./internal/... ./tests/...
+gotestsum -- ./internal/... ./tests/...
+```
+
+Or using make:
+
+```bash
+make test
 ```
 
 To run all tests:
 
 ```bash
-go test ./...
+gotestsum -- ./...
+```
+
+To run tests with coverage:
+
+```bash
+make test-coverage
 ```

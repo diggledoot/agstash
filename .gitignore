@@ -10,3 +10,6 @@
 *.o
 *.a
 *.out
+
+# Test artifacts
+*.html
