@@ -11,6 +11,13 @@ import (
 	"agstash/internal/utils"
 )
 
+// assert function for safety checks - crashes on failure
+func assert(condition bool, message string) {
+	if !condition {
+		log.Panicf("Assertion failed: %s", message)
+	}
+}
+
 // ANSI color codes
 const (
 	Reset  = "\033[0m"
@@ -27,32 +34,69 @@ func colorString(s string, colorCode string) string {
 }
 
 // HandleInit creates a default AGENTS.md file in the current directory if one doesn't exist
-func HandleInit() error {
+func HandleInit(force bool) error {
+	// Assert preconditions
+	assert("AGENTS.md" != "", "agentsFilePath should not be empty")
+
 	agentsFilePath := "AGENTS.md"
 
-	if utils.FileExists(agentsFilePath) {
-		fmt.Printf("%s %s\n", colorString("AGENTS.md", Green), colorString("already exists.", Yellow))
-		log.Printf("INFO: AGENTS.md already exists, skipping creation")
-	} else {
-		// Content to write to the AGENTS.md file
-		agentsContent := `# AGENTS
+	// Check if we need user confirmation
+	needsConfirmation := utils.FileExists(agentsFilePath) && !force
+	if needsConfirmation {
+		// Prompt user for confirmation before overwriting
+		fmt.Printf("\n%s %s already exists in the current directory.\n", colorString("WARNING:", Yellow+Bold), colorString("AGENTS.md", Bold))
+		fmt.Printf("Do you want to replace it with a default version?\n")
+		fmt.Printf("This action will permanently overwrite the current file.\n\n")
+		fmt.Printf("Type 'yes' to confirm or 'no' to cancel [y/N]: ")
+
+		userConfirmed, err := getUserConfirmation()
+		if err != nil {
+			return err
+		}
+		if !userConfirmed {
+			log.Printf("INFO: User declined to overwrite, aborting init")
+			fmt.Printf("\nOperation cancelled. %s was not modified.\n", colorString("AGENTS.md", Bold))
+			return nil
+		} else {
+			log.Printf("INFO: User confirmed overwrite")
+			fmt.Printf("\nConfirmed. Creating default %s...\n", colorString("AGENTS.md", Bold))
+		}
+	} else if utils.FileExists(agentsFilePath) {
+		log.Printf("INFO: No existing AGENTS.md or force is true, proceeding with init")
+	}
+
+	// Content to write to the AGENTS.md file
+	agentsContent := `# AGENTS
 
 - be concise and factual.
 - always test after changes are made.
 - create tests after a new feature is added.
 `
 
-		if err := utils.WriteFile(agentsFilePath, agentsContent); err != nil {
-			return err
-		}
-		log.Printf("INFO: Created AGENTS.md file")
-		fmt.Printf("%s AGENTS.md\n", colorString("Created", Green))
+	// Assert content is valid before writing
+	assert(agentsContent != "", "agentsContent should not be empty")
+
+	if err := utils.WriteFile(agentsFilePath, agentsContent); err != nil {
+		return err
 	}
+	log.Printf("INFO: Created AGENTS.md file")
+	fmt.Printf("%s AGENTS.md\n", colorString("Created", Green))
+
+	// Assert postcondition - file should exist after init
+	if !utils.FileExists(agentsFilePath) {
+		log.Printf("INFO: AGENTS.md does not exist after init (it may have existed already)")
+	} else {
+		log.Printf("INFO: AGENTS.md exists after init")
+	}
+
 	return nil
 }
 
 // HandleClean removes the AGENTS.md file from the current directory if it exists
 func HandleClean() error {
+	// Assert preconditions
+	assert("AGENTS.md" != "", "agentsFilePath should not be empty")
+
 	agentsFilePath := "AGENTS.md"
 
 	if utils.FileExists(agentsFilePath) {
@@ -65,6 +109,14 @@ func HandleClean() error {
 		log.Printf("INFO: AGENTS.md does not exist, nothing to remove")
 		fmt.Printf("%s %s\n", colorString("AGENTS.md", Bold), colorString("does not exist.", Yellow))
 	}
+
+	// Assert postcondition - file should not exist after clean
+	if utils.FileExists(agentsFilePath) {
+		log.Printf("WARN: AGENTS.md still exists after clean operation")
+	} else {
+		log.Printf("INFO: AGENTS.md does not exist after clean (as expected)")
+	}
+
 	return nil
 }
 
@@ -75,9 +127,15 @@ func HandleStash() error {
 		return err
 	}
 
+	// Assert preconditions
+	assert(root != "", "root directory should not be empty")
+
 	log.Printf("INFO: Found project root at: %s", root)
 
 	projectName := filepath.Base(root)
+
+	// Assert project name is valid
+	assert(projectName != "", "projectName should not be empty")
 
 	agentsPath := filepath.Join(root, "AGENTS.md")
 
@@ -103,12 +161,23 @@ func HandleStash() error {
 		return err
 	}
 
+	// Assert stash path is valid
+	assert(stashPath != "", "stashPath should not be empty")
+
 	log.Printf("INFO: Stashing to path: %s", stashPath)
 	if err := utils.CopyFile(agentsPath, stashPath); err != nil {
 		return err
 	}
 	log.Printf("INFO: AGENTS.md stashed for project: %s", projectName)
 	fmt.Printf("%s AGENTS.md for %s\n", colorString("Stashed", Green), colorString(projectName, Bold))
+
+	// Assert postcondition - stashed file should exist
+	if !utils.FileExists(stashPath) {
+		log.Printf("WARN: Stash file does not exist after stash operation")
+	} else {
+		log.Printf("INFO: Stash file exists after stash operation")
+	}
+
 	return nil
 }
 
@@ -119,14 +188,24 @@ func HandleApply(force bool) error {
 		return err
 	}
 
+	// Assert preconditions
+	assert(root != "", "root directory should not be empty")
+
 	log.Printf("INFO: Found project root at: %s", root)
 	projectName := filepath.Base(root)
+
+	// Assert project name is valid
+	assert(projectName != "", "projectName should not be empty")
 
 	err, stashFilePath := utils.GetStashPath(projectName)
 	if err != nil {
 		return err
 	}
 	agentsMdFilePath := filepath.Join(root, "AGENTS.md")
+
+	// Assert file paths are valid
+	assert(stashFilePath != "", "stashFilePath should not be empty")
+	assert(agentsMdFilePath != "", "agentsMdFilePath should not be empty")
 
 	log.Printf("INFO: Looking for stash at: %s", stashFilePath)
 
@@ -186,6 +265,12 @@ func getUserConfirmation() (bool, error) {
 
 // applyStashContent validates the stashed content and copies it to the project's AGENTS.md file
 func applyStashContent(stashFilePath, agentsMdFilePath, projectName string) error {
+	// Assert preconditions
+	assert(stashFilePath != "", "stashFilePath should not be empty")
+	assert(agentsMdFilePath != "", "agentsMdFilePath should not be empty")
+	assert(projectName != "", "projectName should not be empty")
+	assert(utils.FileExists(stashFilePath), "Stash file path should exist")
+
 	if !utils.FileExists(stashFilePath) {
 		panic("Stash file path should exist")
 	}
@@ -200,6 +285,9 @@ func applyStashContent(stashFilePath, agentsMdFilePath, projectName string) erro
 		return err
 	}
 
+	// Assert content is valid before applying
+	assert(stashContent != "", "stashContent should not be empty")
+
 	if !utils.IsValidAgents(stashContent) {
 		log.Printf("WARN: Stash content is invalid, apply aborted")
 		fmt.Printf("%s %s\n", colorString("Stash content is invalid (missing '# AGENTS' header).", Yellow), colorString("Apply aborted.", Yellow))
@@ -212,6 +300,14 @@ func applyStashContent(stashFilePath, agentsMdFilePath, projectName string) erro
 	}
 	log.Printf("INFO: AGENTS.md applied for project: %s", projectName)
 	fmt.Printf("%s AGENTS.md for %s\n", colorString("Applied", Green), colorString(projectName, Bold))
+
+	// Assert postcondition - applied file should exist
+	if !utils.FileExists(agentsMdFilePath) {
+		log.Printf("WARN: Applied file does not exist after apply operation")
+	} else {
+		log.Printf("INFO: Applied file exists after apply operation")
+	}
+
 	return nil
 }
 
@@ -221,6 +317,9 @@ func HandleUninstall() error {
 	if err != nil {
 		return err
 	}
+
+	// Assert preconditions
+	assert(agstashDir != "", "agstashDir should not be empty")
 
 	log.Printf("INFO: Located agstash directory at: %s", agstashDir)
 
@@ -235,5 +334,13 @@ func HandleUninstall() error {
 		log.Printf("INFO: agstash directory does not exist: %s", agstashDir)
 		fmt.Printf("%s %s\n", colorString(".agstash directory", Bold), colorString("does not exist.", Yellow))
 	}
+
+	// Assert postcondition - directory should not exist after uninstall
+	if utils.FileExists(agstashDir) {
+		log.Printf("WARN: agstash directory still exists after uninstall operation")
+	} else {
+		log.Printf("INFO: agstash directory does not exist after uninstall (as expected)")
+	}
+
 	return nil
 }

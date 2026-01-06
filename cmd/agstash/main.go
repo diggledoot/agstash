@@ -8,7 +8,18 @@ import (
 	"agstash/internal/commands"
 )
 
+// assert function for safety checks - crashes on failure
+func assert(condition bool, message string) {
+	if !condition {
+		fmt.Fprintf(os.Stderr, "Assertion failed: %s\n", message)
+		os.Exit(1)
+	}
+}
+
 func main() {
+	// Assert preconditions
+	assert(len(os.Args) >= 1, "os.Args should always have at least one element (program name)")
+
 	// Parse the flags to get the command
 	if len(os.Args) < 2 {
 		printUsage()
@@ -18,6 +29,9 @@ func main() {
 	// Extract command and subcommand args
 	command := os.Args[1]
 	subArgs := os.Args[2:]
+
+	// Assert command is not empty
+	assert(command != "", "Command should not be empty at this point")
 
 	// Handle commands
 	switch command {
@@ -56,14 +70,22 @@ Available Commands:
 }
 
 func printInitHelp() {
-	help := `Usage: agstash init
+	help := `Usage: agstash init [flags]
 
 Initialize a new AGENTS.md file in the current directory if one doesn't exist.
+
+When an AGENTS.md file already exists in the current directory, the command will prompt
+for confirmation before overwriting it. You will be asked to type 'yes' to confirm.
+
+Flags:
+  -f, --force    Overwrite existing AGENTS.md file without prompting for confirmation
 
 The AGENTS.md file contains guidelines for AI agents working in the project.
 
 Examples:
   agstash init                    # Create AGENTS.md in current directory
+  agstash init --force            # Create AGENTS.md without confirmation
+  agstash init -f                 # Same as above, using short flag
 `
 	fmt.Println(help)
 }
@@ -125,13 +147,17 @@ Examples:
 }
 
 func handleInitCommand(args []string) {
-	// Create a flagset for init command to check for help
+	// Assert preconditions
+	assert(args != nil, "args should not be nil")
+
+	// Parse flags for init command
 	initFlags := flag.NewFlagSet("init", flag.ExitOnError)
+	force := initFlags.Bool("force", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
+	initFlags.BoolVar(force, "f", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
 	helpRequested := initFlags.Bool("help", false, "Show help for init command")
 	initFlags.BoolVar(helpRequested, "h", false, "Show help for init command")
 
-	// Parse the flags - if there are issues with other flags, we'll handle them later
-	_ = initFlags.Parse(args)
+	initFlags.Parse(args)
 
 	// Check if help was requested
 	if *helpRequested {
@@ -139,14 +165,20 @@ func handleInitCommand(args []string) {
 		return
 	}
 
-	err := commands.HandleInit()
+	err := commands.HandleInit(*force)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+
+	// Assert postcondition - the command should complete without error
+	assert(err == nil, "HandleInit should not return an error")
 }
 
 func handleCleanCommand(args []string) {
+	// Assert preconditions
+	assert(args != nil, "args should not be nil")
+
 	// Create a flagset for clean command to check for help
 	cleanFlags := flag.NewFlagSet("clean", flag.ExitOnError)
 	helpRequested := cleanFlags.Bool("help", false, "Show help for clean command")
@@ -166,9 +198,15 @@ func handleCleanCommand(args []string) {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+
+	// Assert postcondition - the command should complete without error
+	assert(err == nil, "HandleClean should not return an error")
 }
 
 func handleStashCommand(args []string) {
+	// Assert preconditions
+	assert(args != nil, "args should not be nil")
+
 	// Create a flagset for stash command to check for help
 	stashFlags := flag.NewFlagSet("stash", flag.ExitOnError)
 	helpRequested := stashFlags.Bool("help", false, "Show help for stash command")
@@ -188,9 +226,15 @@ func handleStashCommand(args []string) {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+
+	// Assert postcondition - the command should complete without error
+	assert(err == nil, "HandleStash should not return an error")
 }
 
 func handleApplyCommand(args []string) {
+	// Assert preconditions
+	assert(args != nil, "args should not be nil")
+
 	// Parse flags for apply command
 	applyFlags := flag.NewFlagSet("apply", flag.ExitOnError)
 	force := applyFlags.Bool("force", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
@@ -211,9 +255,15 @@ func handleApplyCommand(args []string) {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+
+	// Assert postcondition - the command should complete without error
+	assert(err == nil, "HandleApply should not return an error")
 }
 
 func handleUninstallCommand(args []string) {
+	// Assert preconditions
+	assert(args != nil, "args should not be nil")
+
 	// Create a flagset for uninstall command to check for help
 	uninstallFlags := flag.NewFlagSet("uninstall", flag.ExitOnError)
 	helpRequested := uninstallFlags.Bool("help", false, "Show help for uninstall command")
@@ -233,4 +283,7 @@ func handleUninstallCommand(args []string) {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+
+	// Assert postcondition - the command should complete without error
+	assert(err == nil, "HandleUninstall should not return an error")
 }

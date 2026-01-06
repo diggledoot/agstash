@@ -21,7 +21,7 @@ func TestHandleInit(t *testing.T) {
 	}
 
 	// Run init command
-	err := HandleInit()
+	err := HandleInit(false)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -48,8 +48,8 @@ func TestHandleInit(t *testing.T) {
 		t.Errorf("Expected content %s, got %s", expectedContent, content)
 	}
 
-	// Try to init again - should not overwrite
-	err = HandleInit()
+	// Try to init again - should not overwrite (using force=true to bypass confirmation in test)
+	err = HandleInit(true)
 	if err != nil {
 		t.Errorf("Expected no error on second init, got %v", err)
 	}

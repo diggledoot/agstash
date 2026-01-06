@@ -22,7 +22,7 @@ func TestInitCreatesFile(t *testing.T) {
 	}
 
 	// Run init command
-	err := commands.HandleInit()
+	err := commands.HandleInit(false)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -69,8 +69,9 @@ func TestInitDoesNotOverwrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Run init command
-	initErr := commands.HandleInit()
+	// Run init command with force=false to test confirmation behavior
+	// In test environment with no stdin, getUserConfirmation returns false, so file won't be overwritten
+	initErr := commands.HandleInit(false)
 	if initErr != nil {
 		t.Fatalf("Expected no error, got %v", initErr)
 	}
