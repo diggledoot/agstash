@@ -6,17 +6,18 @@
 
 `agstash` helps you manage AI agent instructions stored in `AGENTS.md` files.
 
-## Installation
-
-```bash
-go install agstash
-```
-
-Or build from source:
+## Build from source:
 
 ```bash
 git clone <repository-url>
 cd agstash
+make build
+./bin/agstash --help
+```
+
+Or build directly:
+
+```bash
 go build -o agstash cmd/agstash/main.go
 ./agstash --help
 ```
@@ -46,13 +47,12 @@ The project includes a Makefile with common development tasks:
 
 ```bash
 make build          # Build the project
-make install        # Install the project
 make test           # Run tests
 make test-coverage  # Run tests with coverage
 make clean          # Clean build artifacts
 make fmt            # Format code
 make check          # Run all checks (fmt, test)
-make all            # Build and install
+make all            # Build all
 ```
 
 ## Testing

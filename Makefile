@@ -1,14 +1,10 @@
 # Makefile for agstash Go project
 
-.PHONY: build install test test-coverage clean fmt check all
+.PHONY: build test test-coverage clean fmt check all
 
 # Build the project
 build:
 	go build -o bin/agstash cmd/agstash/main.go
-
-# Install the project
-install:
-	go install cmd/agstash/main.go
 
 # Run tests
 test:
@@ -30,5 +26,5 @@ fmt:
 # Run all checks
 check: fmt test
 
-# Build and install
-all: build install
+# Build all
+all: build
