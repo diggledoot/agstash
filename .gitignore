@@ -1,1 +1,13 @@
 /target
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+agstash
+agstash.exe
+
+# Go build artifacts
+*.o
+*.a
+*.out

@@ -1,10 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
-
-	"github.com/spf13/cobra"
 
 	"agstash/internal/commands"
 	"agstash/internal/utils"
@@ -12,101 +11,122 @@ import (
 
 var verbose bool
 
-// RootCmd represents the base command when called without any subcommands
-var RootCmd = &cobra.Command{
-	Use:   "agstash",
-	Short: "A CLI tool to stash and apply changes to AGENTS.md",
-	Long:  `A CLI tool to stash and apply changes to AGENTS.md`,
-}
-
-// initCmd represents the init command
-var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialize a new AGENTS.md file in the current directory",
-	Long:  `Initialize a new AGENTS.md file in the current directory`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := commands.HandleInit()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-// cleanCmd represents the clean command
-var cleanCmd = &cobra.Command{
-	Use:   "clean",
-	Short: "Remove the AGENTS.md file from the current directory",
-	Long:  `Remove the AGENTS.md file from the current directory`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := commands.HandleClean()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-// stashCmd represents the stash command
-var stashCmd = &cobra.Command{
-	Use:   "stash",
-	Short: "Stash the AGENTS.md file to a global location for later retrieval",
-	Long:  `Stash the AGENTS.md file to a global location for later retrieval`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := commands.HandleStash()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-// applyCmd represents the apply command
-var applyCmd = &cobra.Command{
-	Use:   "apply",
-	Short: "Apply a previously stashed AGENTS.md file to the current directory",
-	Long:  `Apply a previously stashed AGENTS.md file to the current directory`,
-	Run: func(cmd *cobra.Command, args []string) {
-		force, _ := cmd.Flags().GetBool("force")
-		err := commands.HandleApply(force)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-// uninstallCmd represents the uninstall command
-var uninstallCmd = &cobra.Command{
-	Use:   "uninstall",
-	Short: "Remove the global .agstash directory and all stashed files",
-	Long:  `Remove the global .agstash directory and all stashed files`,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := commands.HandleUninstall()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-func init() {
-	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging for detailed output")
-	
-	applyCmd.Flags().BoolP("force", "", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
-	
-	RootCmd.AddCommand(initCmd)
-	RootCmd.AddCommand(cleanCmd)
-	RootCmd.AddCommand(stashCmd)
-	RootCmd.AddCommand(applyCmd)
-	RootCmd.AddCommand(uninstallCmd)
-}
-
 func main() {
+	// Set up flags
+	verboseFlag := flag.Bool("v", false, "Enable verbose logging for detailed output")
+	flag.BoolVar(verboseFlag, "verbose", false, "Enable verbose logging for detailed output")
+
+	// Parse the flags to get the command
+	if len(os.Args) < 2 {
+		printUsage()
+		os.Exit(1)
+	}
+
+	// Extract command and subcommand args
+	command := os.Args[1]
+	subArgs := os.Args[2:]
+
 	// Set up logging based on verbose flag
-	utils.SetupLogging(verbose)
-	
-	if err := RootCmd.Execute(); err != nil {
+	utils.SetupLogging(*verboseFlag)
+
+	// Handle commands
+	switch command {
+	case "init":
+		handleInitCommand(subArgs)
+	case "clean":
+		handleCleanCommand(subArgs)
+	case "stash":
+		handleStashCommand(subArgs)
+	case "apply":
+		handleApplyCommand(subArgs)
+	case "uninstall":
+		handleUninstallCommand(subArgs)
+	case "help":
+		printUsage()
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
+		printUsage()
+		os.Exit(1)
+	}
+}
+
+func printUsage() {
+	usage := `agstash is a CLI tool to stash and apply changes to AGENTS.md
+
+Usage: agstash [flags] <command> [command-flags] [command-args]
+
+Commands:
+  init        Initialize a new AGENTS.md file in the current directory
+  clean       Remove the AGENTS.md file from the current directory
+  stash       Stash the AGENTS.md file to a global location for later retrieval
+  apply       Apply a previously stashed AGENTS.md file to the current directory
+  uninstall   Remove the global .agstash directory and all stashed files
+  help        Show this help message
+
+Flags:
+  -v, --verbose    Enable verbose logging for detailed output
+`
+	fmt.Println(usage)
+}
+
+func handleInitCommand(args []string) {
+	// Parse flags for init command (none currently)
+	initFlags := flag.NewFlagSet("init", flag.ExitOnError)
+	initFlags.Parse(args)
+
+	err := commands.HandleInit()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func handleCleanCommand(args []string) {
+	// Parse flags for clean command (none currently)
+	cleanFlags := flag.NewFlagSet("clean", flag.ExitOnError)
+	cleanFlags.Parse(args)
+
+	err := commands.HandleClean()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func handleStashCommand(args []string) {
+	// Parse flags for stash command (none currently)
+	stashFlags := flag.NewFlagSet("stash", flag.ExitOnError)
+	stashFlags.Parse(args)
+
+	err := commands.HandleStash()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func handleApplyCommand(args []string) {
+	// Parse flags for apply command
+	applyFlags := flag.NewFlagSet("apply", flag.ExitOnError)
+	force := applyFlags.Bool("force", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
+	applyFlags.BoolVar(force, "f", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
+
+	applyFlags.Parse(args)
+
+	err := commands.HandleApply(*force)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func handleUninstallCommand(args []string) {
+	// Parse flags for uninstall command (none currently)
+	uninstallFlags := flag.NewFlagSet("uninstall", flag.ExitOnError)
+	uninstallFlags.Parse(args)
+
+	err := commands.HandleUninstall()
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

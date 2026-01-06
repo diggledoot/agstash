@@ -8,17 +8,30 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fatih/color"
-
 	"agstash/internal/utils"
 )
+
+// ANSI color codes
+const (
+	Reset  = "\033[0m"
+	Red    = "\033[31m"
+	Green  = "\033[32m"
+	Yellow = "\033[33m"
+	Blue   = "\033[34m"
+	Bold   = "\033[1m"
+)
+
+// colorString applies ANSI color codes to a string
+func colorString(s string, colorCode string) string {
+	return colorCode + s + Reset
+}
 
 // HandleInit creates a default AGENTS.md file in the current directory if one doesn't exist
 func HandleInit() error {
 	agentsFilePath := "AGENTS.md"
 
 	if utils.FileExists(agentsFilePath) {
-		fmt.Printf("%s %s\n", color.New(color.FgGreen).Sprint("AGENTS.md"), color.New(color.FgYellow).Sprint("already exists."))
+		fmt.Printf("%s %s\n", colorString("AGENTS.md", Green), colorString("already exists.", Yellow))
 		log.Printf("INFO: AGENTS.md already exists, skipping creation")
 	} else {
 		// Content to write to the AGENTS.md file
@@ -33,7 +46,7 @@ func HandleInit() error {
 			return err
 		}
 		log.Printf("INFO: Created AGENTS.md file")
-		fmt.Printf("%s AGENTS.md\n", color.New(color.FgGreen).Sprint("Created"))
+		fmt.Printf("%s AGENTS.md\n", colorString("Created", Green))
 	}
 	return nil
 }
@@ -47,10 +60,10 @@ func HandleClean() error {
 			return utils.NewIoError(err)
 		}
 		log.Printf("INFO: Removed AGENTS.md file")
-		fmt.Printf("%s AGENTS.md\n", color.New(color.FgRed).Sprint("Removed"))
+		fmt.Printf("%s AGENTS.md\n", colorString("Removed", Red))
 	} else {
 		log.Printf("INFO: AGENTS.md does not exist, nothing to remove")
-		fmt.Printf("%s %s\n", color.New(color.Bold).Sprint("AGENTS.md"), color.New(color.FgYellow).Sprint("does not exist."))
+		fmt.Printf("%s %s\n", colorString("AGENTS.md", Bold), colorString("does not exist.", Yellow))
 	}
 	return nil
 }
@@ -70,7 +83,7 @@ func HandleStash() error {
 
 	if !utils.FileExists(agentsPath) {
 		log.Printf("INFO: AGENTS.md does not exist in project root: %s", agentsPath)
-		fmt.Printf("%s %s\n", color.New(color.Bold).Sprint("AGENTS.md"), color.New(color.FgYellow).Sprint("does not exist in project root."))
+		fmt.Printf("%s %s\n", colorString("AGENTS.md", Bold), colorString("does not exist in project root.", Yellow))
 		return nil
 	}
 
@@ -81,7 +94,7 @@ func HandleStash() error {
 
 	if !utils.IsValidAgents(agentsContent) {
 		log.Printf("WARN: AGENTS.md content is invalid, stash aborted")
-		fmt.Printf("%s %s\n", color.New(color.FgYellow).Sprint("AGENTS.md content is invalid (missing '# AGENTS' header)."), color.New(color.FgYellow).Sprint("Stash aborted."))
+		fmt.Printf("%s %s\n", colorString("AGENTS.md content is invalid (missing '# AGENTS' header).", Yellow), colorString("Stash aborted.", Yellow))
 		return nil
 	}
 
@@ -95,7 +108,7 @@ func HandleStash() error {
 		return err
 	}
 	log.Printf("INFO: AGENTS.md stashed for project: %s", projectName)
-	fmt.Printf("%s AGENTS.md for %s\n", color.New(color.FgGreen).Sprint("Stashed"), color.New(color.Bold).Sprint(projectName))
+	fmt.Printf("%s AGENTS.md for %s\n", colorString("Stashed", Green), colorString(projectName, Bold))
 	return nil
 }
 
@@ -120,7 +133,7 @@ func HandleApply(force bool) error {
 	// Check if stash exists first
 	if !utils.FileExists(stashFilePath) {
 		log.Printf("INFO: No stash found for project: %s", projectName)
-		fmt.Printf("No stash found for project %s\n", color.New(color.Bold).Sprint(projectName))
+		fmt.Printf("No stash found for project %s\n", colorString(projectName, Bold))
 		return nil
 	}
 
@@ -128,7 +141,7 @@ func HandleApply(force bool) error {
 	needsConfirmation := utils.FileExists(agentsMdFilePath) && !force
 	if needsConfirmation {
 		log.Printf("INFO: AGENTS.md exists and force is false, prompting user")
-		fmt.Printf("%s %s already exists. Overwrite? [y/N]\n", color.New(color.FgYellow).Add(color.Bold).Sprint("Warning:"), color.New(color.Bold).Sprint("AGENTS.md"))
+		fmt.Printf("%s %s already exists. Overwrite? [y/N]\n", colorString("Warning:", Yellow+Bold), colorString("AGENTS.md", Bold))
 
 		userConfirmed, err := getUserConfirmation()
 		if err != nil {
@@ -176,7 +189,7 @@ func applyStashContent(stashFilePath, agentsMdFilePath, projectName string) erro
 
 	if !utils.IsValidAgents(stashContent) {
 		log.Printf("WARN: Stash content is invalid, apply aborted")
-		fmt.Printf("%s %s\n", color.New(color.FgYellow).Sprint("Stash content is invalid (missing '# AGENTS' header)."), color.New(color.FgYellow).Sprint("Apply aborted."))
+		fmt.Printf("%s %s\n", colorString("Stash content is invalid (missing '# AGENTS' header).", Yellow), colorString("Apply aborted.", Yellow))
 		return nil
 	}
 
@@ -185,7 +198,7 @@ func applyStashContent(stashFilePath, agentsMdFilePath, projectName string) erro
 		return err
 	}
 	log.Printf("INFO: AGENTS.md applied for project: %s", projectName)
-	fmt.Printf("%s AGENTS.md for %s\n", color.New(color.FgGreen).Sprint("Applied"), color.New(color.Bold).Sprint(projectName))
+	fmt.Printf("%s AGENTS.md for %s\n", colorString("Applied", Green), colorString(projectName, Bold))
 	return nil
 }
 
@@ -204,10 +217,10 @@ func HandleUninstall() error {
 			return utils.NewIoError(err)
 		}
 		log.Printf("INFO: Successfully removed agstash directory")
-		fmt.Printf("%s %s\n", color.New(color.FgRed).Sprint("Removed"), agstashDir)
+		fmt.Printf("%s %s\n", colorString("Removed", Red), agstashDir)
 	} else {
 		log.Printf("INFO: agstash directory does not exist: %s", agstashDir)
-		fmt.Printf("%s %s\n", color.New(color.Bold).Sprint(".agstash directory"), color.New(color.FgYellow).Sprint("does not exist."))
+		fmt.Printf("%s %s\n", colorString(".agstash directory", Bold), colorString("does not exist.", Yellow))
 	}
 	return nil
 }
