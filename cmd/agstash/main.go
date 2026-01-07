@@ -185,7 +185,7 @@ func handleCleanCommand(args []string) {
 	cleanFlags.BoolVar(helpRequested, "h", false, "Show help for clean command")
 
 	// Parse the flags
-	_ = cleanFlags.Parse(args)
+	cleanFlags.Parse(args)
 
 	// Check if help was requested
 	if *helpRequested {
@@ -213,7 +213,7 @@ func handleStashCommand(args []string) {
 	stashFlags.BoolVar(helpRequested, "h", false, "Show help for stash command")
 
 	// Parse the flags
-	_ = stashFlags.Parse(args)
+	stashFlags.Parse(args)
 
 	// Check if help was requested
 	if *helpRequested {
@@ -270,7 +270,7 @@ func handleUninstallCommand(args []string) {
 	uninstallFlags.BoolVar(helpRequested, "h", false, "Show help for uninstall command")
 
 	// Parse the flags
-	_ = uninstallFlags.Parse(args)
+	uninstallFlags.Parse(args)
 
 	// Check if help was requested
 	if *helpRequested {
