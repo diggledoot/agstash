@@ -12,8 +12,17 @@ func TestHandleInit(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
-	os.Chdir(tempDir)
+	err := os.Chdir(originalDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir) // Ignore error on defer
+	}()
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
 
 	// Create a .git directory to establish project root
 	if err := os.Mkdir(".git", 0755); err != nil {
@@ -21,7 +30,7 @@ func TestHandleInit(t *testing.T) {
 	}
 
 	// Run init command
-	err := HandleInit(false)
+	err = HandleInit(false)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -59,8 +68,17 @@ func TestHandleClean(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
-	os.Chdir(tempDir)
+	err := os.Chdir(originalDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir) // Ignore error on defer
+	}()
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
 
 	// Create a .git directory to establish project root
 	if err := os.Mkdir(".git", 0755); err != nil {
@@ -80,7 +98,7 @@ func TestHandleClean(t *testing.T) {
 	}
 
 	// Run clean command
-	err := HandleClean()
+	err = HandleClean()
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -101,8 +119,17 @@ func TestHandleStash(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
-	os.Chdir(tempDir)
+	err := os.Chdir(originalDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir) // Ignore error on defer
+	}()
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
 
 	// Create a .git directory to establish project root
 	if err := os.Mkdir(".git", 0755); err != nil {
@@ -112,7 +139,9 @@ func TestHandleStash(t *testing.T) {
 	// Set up HOME environment variable to temp directory
 	originalHome := os.Getenv("HOME")
 	t.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", originalHome)
+	defer func() {
+		_ = os.Setenv("HOME", originalHome) // Ignore error on defer
+	}()
 
 	// Create an AGENTS.md file with valid content
 	agentsFile := "AGENTS.md"
@@ -122,7 +151,7 @@ func TestHandleStash(t *testing.T) {
 	}
 
 	// Run stash command
-	err := HandleStash()
+	err = HandleStash()
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -148,8 +177,17 @@ func TestHandleStashInvalidContent(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
-	os.Chdir(tempDir)
+	err := os.Chdir(originalDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir) // Ignore error on defer
+	}()
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
 
 	// Create a .git directory to establish project root
 	if err := os.Mkdir(".git", 0755); err != nil {
@@ -159,7 +197,9 @@ func TestHandleStashInvalidContent(t *testing.T) {
 	// Set up HOME environment variable to temp directory
 	originalHome := os.Getenv("HOME")
 	t.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", originalHome)
+	defer func() {
+		_ = os.Setenv("HOME", originalHome) // Ignore error on defer
+	}()
 
 	// Create an AGENTS.md file with invalid content (missing header)
 	agentsFile := "AGENTS.md"
@@ -169,7 +209,7 @@ func TestHandleStashInvalidContent(t *testing.T) {
 	}
 
 	// Run stash command - should not error but should not stash
-	err := HandleStash()
+	err = HandleStash()
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -187,7 +227,9 @@ func TestHandleUninstall(t *testing.T) {
 	tempDir := t.TempDir()
 	originalHome := os.Getenv("HOME")
 	t.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", originalHome)
+	defer func() {
+		_ = os.Setenv("HOME", originalHome) // Ignore error on defer
+	}()
 
 	// Create the .agstash directory with some content
 	agstashDir := filepath.Join(tempDir, ".agstash")

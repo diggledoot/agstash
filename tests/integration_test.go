@@ -13,8 +13,17 @@ func TestInitCreatesFile(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
-	os.Chdir(tempDir)
+	err := os.Chdir(originalDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir) // Ignore error on defer
+	}()
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
 
 	// Create a .git directory to establish project root
 	if err := os.Mkdir(".git", 0755); err != nil {
@@ -22,7 +31,7 @@ func TestInitCreatesFile(t *testing.T) {
 	}
 
 	// Run init command
-	err := commands.HandleInit(false)
+	err = commands.HandleInit(false)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -54,8 +63,17 @@ func TestInitDoesNotOverwrite(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
-	os.Chdir(tempDir)
+	err := os.Chdir(originalDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir) // Ignore error on defer
+	}()
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
 
 	// Create a .git directory to establish project root
 	if err := os.Mkdir(".git", 0755); err != nil {
@@ -90,8 +108,17 @@ func TestCleanRemovesFile(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
-	os.Chdir(tempDir)
+	err := os.Chdir(originalDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir) // Ignore error on defer
+	}()
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
 
 	// Create a .git directory to establish project root
 	if err := os.Mkdir(".git", 0755); err != nil {
@@ -111,7 +138,7 @@ func TestCleanRemovesFile(t *testing.T) {
 	}
 
 	// Run clean command
-	err := commands.HandleClean()
+	err = commands.HandleClean()
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -126,8 +153,17 @@ func TestCleanDoesNotErrorOnMissingFile(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
-	os.Chdir(tempDir)
+	err := os.Chdir(originalDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir) // Ignore error on defer
+	}()
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
 
 	// Create a .git directory to establish project root
 	if err := os.Mkdir(".git", 0755); err != nil {
@@ -135,7 +171,7 @@ func TestCleanDoesNotErrorOnMissingFile(t *testing.T) {
 	}
 
 	// Run clean command on non-existing file
-	err := commands.HandleClean()
+	err = commands.HandleClean()
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -145,8 +181,17 @@ func TestStashCreatesFile(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
-	os.Chdir(tempDir)
+	err := os.Chdir(originalDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir) // Ignore error on defer
+	}()
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
 
 	// Create a .git directory to establish project root
 	if err := os.Mkdir(".git", 0755); err != nil {
@@ -156,7 +201,9 @@ func TestStashCreatesFile(t *testing.T) {
 	// Set up HOME environment variable to temp directory
 	originalHome := os.Getenv("HOME")
 	t.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", originalHome)
+	defer func() {
+		_ = os.Setenv("HOME", originalHome) // Ignore error on defer
+	}()
 
 	// Create an AGENTS.md file with valid content
 	agentsFile := "AGENTS.md"
@@ -166,7 +213,7 @@ func TestStashCreatesFile(t *testing.T) {
 	}
 
 	// Run stash command
-	err := commands.HandleStash()
+	err = commands.HandleStash()
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -192,8 +239,17 @@ func TestStashFailsWhenAgentsMissing(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
-	os.Chdir(tempDir)
+	err := os.Chdir(originalDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir) // Ignore error on defer
+	}()
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
 
 	// Create a .git directory to establish project root
 	if err := os.Mkdir(".git", 0755); err != nil {
@@ -203,12 +259,14 @@ func TestStashFailsWhenAgentsMissing(t *testing.T) {
 	// Set up HOME environment variable to temp directory
 	originalHome := os.Getenv("HOME")
 	t.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", originalHome)
+	defer func() {
+		_ = os.Setenv("HOME", originalHome) // Ignore error on defer
+	}()
 
 	// Don't create AGENTS.md
 
 	// Run stash command - should not error but should not stash
-	err := commands.HandleStash()
+	err = commands.HandleStash()
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
@@ -226,7 +284,9 @@ func TestUninstallRemovesDirectory(t *testing.T) {
 	tempDir := t.TempDir()
 	originalHome := os.Getenv("HOME")
 	t.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", originalHome)
+	defer func() {
+		_ = os.Setenv("HOME", originalHome) // Ignore error on defer
+	}()
 
 	// Create the .agstash directory with some content
 	agstashDir := filepath.Join(tempDir, ".agstash")
@@ -261,8 +321,17 @@ func TestStashRejectsInvalidAgentsContent(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
-	os.Chdir(tempDir)
+	err := os.Chdir(originalDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalDir) // Ignore error on defer
+	}()
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
 
 	// Create a .git directory to establish project root
 	if err := os.Mkdir(".git", 0755); err != nil {
@@ -272,7 +341,9 @@ func TestStashRejectsInvalidAgentsContent(t *testing.T) {
 	// Set up HOME environment variable to temp directory
 	originalHome := os.Getenv("HOME")
 	t.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", originalHome)
+	defer func() {
+		_ = os.Setenv("HOME", originalHome) // Ignore error on defer
+	}()
 
 	// Create an AGENTS.md file with invalid content (missing header)
 	agentsFile := "AGENTS.md"
@@ -282,7 +353,7 @@ func TestStashRejectsInvalidAgentsContent(t *testing.T) {
 	}
 
 	// Run stash command - should not error but should not stash
-	err := commands.HandleStash()
+	err = commands.HandleStash()
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}

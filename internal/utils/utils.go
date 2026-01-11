@@ -141,18 +141,25 @@ func FileExists(path string) bool {
 	return err == nil
 }
 
+// Assert function for safety checks - crashes on failure
+func Assert(condition bool, message string) {
+	if !condition {
+		log.Panicf("Assertion failed: %s", message)
+	}
+}
+
 // CopyFile copies a file from source to destination
 func CopyFile(src, dst string) *AgStashError {
 	// Read the source file
-	srcData, err := os.ReadFile(src)
+	err, srcData := ReadFile(src)
 	if err != nil {
-		return NewIoError(err)
+		return err
 	}
 
 	// Write to the destination file
-	err = os.WriteFile(dst, srcData, 0644)
+	err = WriteFile(dst, srcData)
 	if err != nil {
-		return NewIoError(err)
+		return err
 	}
 
 	return nil

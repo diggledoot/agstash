@@ -1,6 +1,6 @@
 # Makefile for agstash Go project
 
-.PHONY: build test test-coverage clean clean-coverage fmt check all
+.PHONY: build test test-coverage clean clean-coverage fmt lint check all
 
 # Build the project
 build:
@@ -27,8 +27,12 @@ clean-coverage:
 fmt:
 	go fmt ./...
 
+# Run linter
+lint:
+	golangci-lint run
+
 # Run all checks
-check: fmt test
+check: fmt lint test
 
 # Build all
 all: build

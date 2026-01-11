@@ -8,17 +8,12 @@ import (
 	"agstash/internal/commands"
 )
 
-// assert function for safety checks - crashes on failure
-func assert(condition bool, message string) {
-	if !condition {
-		fmt.Fprintf(os.Stderr, "Assertion failed: %s\n", message)
-		os.Exit(1)
-	}
-}
-
 func main() {
 	// Assert preconditions
-	assert(len(os.Args) >= 1, "os.Args should always have at least one element (program name)")
+	if len(os.Args) < 1 {
+		fmt.Fprintf(os.Stderr, "Assertion failed: os.Args should always have at least one element (program name)\n")
+		os.Exit(1)
+	}
 
 	// Parse the flags to get the command
 	if len(os.Args) < 2 {
@@ -31,23 +26,25 @@ func main() {
 	subArgs := os.Args[2:]
 
 	// Assert command is not empty
-	assert(command != "", "Command should not be empty at this point")
+	if command == "" {
+		fmt.Fprintf(os.Stderr, "Assertion failed: Command should not be empty at this point\n")
+		os.Exit(1)
+	}
+
+	// Define command handlers map
+	commandHandlers := map[string]func([]string){
+		"init":      handleInitCommand,
+		"clean":     handleCleanCommand,
+		"stash":     handleStashCommand,
+		"apply":     handleApplyCommand,
+		"uninstall": handleUninstallCommand,
+		"help":      func(_ []string) { printUsage() },
+	}
 
 	// Handle commands
-	switch command {
-	case "init":
-		handleInitCommand(subArgs)
-	case "clean":
-		handleCleanCommand(subArgs)
-	case "stash":
-		handleStashCommand(subArgs)
-	case "apply":
-		handleApplyCommand(subArgs)
-	case "uninstall":
-		handleUninstallCommand(subArgs)
-	case "help":
-		printUsage()
-	default:
+	if handler, exists := commandHandlers[command]; exists {
+		handler(subArgs)
+	} else {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 		printUsage()
 		os.Exit(1)
@@ -146,18 +143,33 @@ Examples:
 	fmt.Println(help)
 }
 
-func handleInitCommand(args []string) {
+// parseForceAndHelpFlags parses common force and help flags
+func parseForceAndHelpFlags(commandName string, args []string) (*bool, *bool, *flag.FlagSet) {
 	// Assert preconditions
-	assert(args != nil, "args should not be nil")
+	if args == nil {
+		fmt.Fprintf(os.Stderr, "Assertion failed: args should not be nil\n")
+		os.Exit(1)
+	}
 
-	// Parse flags for init command
-	initFlags := flag.NewFlagSet("init", flag.ExitOnError)
-	force := initFlags.Bool("force", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
-	initFlags.BoolVar(force, "f", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
-	helpRequested := initFlags.Bool("help", false, "Show help for init command")
-	initFlags.BoolVar(helpRequested, "h", false, "Show help for init command")
+	// Parse flags for command
+	cmdFlags := flag.NewFlagSet(commandName, flag.ExitOnError)
+	force := cmdFlags.Bool("force", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
+	cmdFlags.BoolVar(force, "f", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
+	helpRequested := cmdFlags.Bool("help", false, "Show help for "+commandName+" command")
+	cmdFlags.BoolVar(helpRequested, "h", false, "Show help for "+commandName+" command")
 
-	initFlags.Parse(args)
+	err := cmdFlags.Parse(args)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", err)
+		os.Exit(1)
+	}
+
+	return force, helpRequested, cmdFlags
+}
+
+func handleInitCommand(args []string) {
+	// Parse common flags
+	force, helpRequested, _ := parseForceAndHelpFlags("init", args)
 
 	// Check if help was requested
 	if *helpRequested {
@@ -172,20 +184,15 @@ func handleInitCommand(args []string) {
 	}
 
 	// Assert postcondition - the command should complete without error
-	assert(err == nil, "HandleInit should not return an error")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Assertion failed: HandleInit should not return an error\n")
+		os.Exit(1)
+	}
 }
 
 func handleCleanCommand(args []string) {
-	// Assert preconditions
-	assert(args != nil, "args should not be nil")
-
-	// Create a flagset for clean command to check for help
-	cleanFlags := flag.NewFlagSet("clean", flag.ExitOnError)
-	helpRequested := cleanFlags.Bool("help", false, "Show help for clean command")
-	cleanFlags.BoolVar(helpRequested, "h", false, "Show help for clean command")
-
-	// Parse the flags
-	cleanFlags.Parse(args)
+	// Parse common flags (only help for clean command)
+	_, helpRequested, _ := parseForceAndHelpFlags("clean", args)
 
 	// Check if help was requested
 	if *helpRequested {
@@ -200,20 +207,15 @@ func handleCleanCommand(args []string) {
 	}
 
 	// Assert postcondition - the command should complete without error
-	assert(err == nil, "HandleClean should not return an error")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Assertion failed: HandleClean should not return an error\n")
+		os.Exit(1)
+	}
 }
 
 func handleStashCommand(args []string) {
-	// Assert preconditions
-	assert(args != nil, "args should not be nil")
-
-	// Create a flagset for stash command to check for help
-	stashFlags := flag.NewFlagSet("stash", flag.ExitOnError)
-	helpRequested := stashFlags.Bool("help", false, "Show help for stash command")
-	stashFlags.BoolVar(helpRequested, "h", false, "Show help for stash command")
-
-	// Parse the flags
-	stashFlags.Parse(args)
+	// Parse common flags (only help for stash command)
+	_, helpRequested, _ := parseForceAndHelpFlags("stash", args)
 
 	// Check if help was requested
 	if *helpRequested {
@@ -228,21 +230,15 @@ func handleStashCommand(args []string) {
 	}
 
 	// Assert postcondition - the command should complete without error
-	assert(err == nil, "HandleStash should not return an error")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Assertion failed: HandleStash should not return an error\n")
+		os.Exit(1)
+	}
 }
 
 func handleApplyCommand(args []string) {
-	// Assert preconditions
-	assert(args != nil, "args should not be nil")
-
-	// Parse flags for apply command
-	applyFlags := flag.NewFlagSet("apply", flag.ExitOnError)
-	force := applyFlags.Bool("force", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
-	applyFlags.BoolVar(force, "f", false, "Overwrite existing AGENTS.md file without prompting for confirmation")
-	helpRequested := applyFlags.Bool("help", false, "Show help for apply command")
-	applyFlags.BoolVar(helpRequested, "h", false, "Show help for apply command")
-
-	applyFlags.Parse(args)
+	// Parse common flags
+	force, helpRequested, _ := parseForceAndHelpFlags("apply", args)
 
 	// Check if help was requested
 	if *helpRequested {
@@ -257,20 +253,15 @@ func handleApplyCommand(args []string) {
 	}
 
 	// Assert postcondition - the command should complete without error
-	assert(err == nil, "HandleApply should not return an error")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Assertion failed: HandleApply should not return an error\n")
+		os.Exit(1)
+	}
 }
 
 func handleUninstallCommand(args []string) {
-	// Assert preconditions
-	assert(args != nil, "args should not be nil")
-
-	// Create a flagset for uninstall command to check for help
-	uninstallFlags := flag.NewFlagSet("uninstall", flag.ExitOnError)
-	helpRequested := uninstallFlags.Bool("help", false, "Show help for uninstall command")
-	uninstallFlags.BoolVar(helpRequested, "h", false, "Show help for uninstall command")
-
-	// Parse the flags
-	uninstallFlags.Parse(args)
+	// Parse common flags (only help for uninstall command)
+	_, helpRequested, _ := parseForceAndHelpFlags("uninstall", args)
 
 	// Check if help was requested
 	if *helpRequested {
@@ -285,5 +276,8 @@ func handleUninstallCommand(args []string) {
 	}
 
 	// Assert postcondition - the command should complete without error
-	assert(err == nil, "HandleUninstall should not return an error")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Assertion failed: HandleUninstall should not return an error\n")
+		os.Exit(1)
+	}
 }
