@@ -56,7 +56,7 @@ func printUsage() {
 Usage: agstash <command> [options]
 
 Available Commands:
-  init        Initialize a new AGENTS.md file in the current directory
+  init        Initialize a new empty AGENTS.md template in the current directory
   clean       Remove the AGENTS.md file from the current directory
   stash       Stash the AGENTS.md file to a global location for later retrieval
   apply       Apply a previously stashed AGENTS.md file to the current directory
@@ -70,6 +70,7 @@ func printInitHelp() {
 	help := `Usage: agstash init [flags]
 
 Initialize a new AGENTS.md file in the current directory if one doesn't exist.
+Creates an empty template with just the '# AGENTS' header for customization.
 
 When an AGENTS.md file already exists in the current directory, the command will prompt
 for confirmation before overwriting it. You will be asked to type 'yes' to confirm.
@@ -80,8 +81,8 @@ Flags:
 The AGENTS.md file contains guidelines for AI agents working in the project.
 
 Examples:
-  agstash init                    # Create AGENTS.md in current directory
-  agstash init --force            # Create AGENTS.md without confirmation
+  agstash init                    # Create empty AGENTS.md template in current directory
+  agstash init --force            # Create empty AGENTS.md template without confirmation
   agstash init -f                 # Same as above, using short flag
 `
 	fmt.Println(help)

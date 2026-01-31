@@ -49,9 +49,7 @@ func TestHandleInit(t *testing.T) {
 
 	expectedContent := `# AGENTS
 
-- be concise and factual.
-- always test after changes are made.
-- create tests after a new feature is added.
+
 `
 	if content != expectedContent {
 		t.Errorf("Expected content %s, got %s", expectedContent, content)

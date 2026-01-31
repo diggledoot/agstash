@@ -57,12 +57,10 @@ func HandleInit(force bool) error {
 		utils.LogInfo("No existing AGENTS.md or force is true, proceeding with init")
 	}
 
-	// Content to write to the AGENTS.md file
+	// Content to write to the AGENTS.md file - initialize with just the header for an empty template
 	agentsContent := `# AGENTS
 
-- be concise and factual.
-- always test after changes are made.
-- create tests after a new feature is added.
+
 `
 
 	// Assert content is valid before writing
