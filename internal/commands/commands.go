@@ -261,14 +261,6 @@ func applyStashContent(stashFilePath, agentsMdFilePath, projectName string) erro
 	utils.Assert(projectName != "", "projectName should not be empty")
 	utils.Assert(utils.FileExists(stashFilePath), "Stash file path should exist")
 
-	if !utils.FileExists(stashFilePath) {
-		panic("Stash file path should exist")
-	}
-
-	if projectName == "" {
-		panic("Project name should not be empty")
-	}
-
 	utils.LogInfo(fmt.Sprintf("Reading stash content from: %s", stashFilePath))
 	err, stashContent := utils.ReadFile(stashFilePath)
 	if err != nil {

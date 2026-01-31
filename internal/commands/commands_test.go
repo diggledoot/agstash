@@ -12,14 +12,10 @@ func TestHandleInit(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	err := os.Chdir(originalDir)
-	if err != nil {
-		t.Fatalf("Failed to change directory: %v", err)
-	}
 	defer func() {
 		_ = os.Chdir(originalDir) // Ignore error on defer
 	}()
-	err = os.Chdir(tempDir)
+	err := os.Chdir(tempDir)
 	if err != nil {
 		t.Fatalf("Failed to change to temp directory: %v", err)
 	}
@@ -66,14 +62,10 @@ func TestHandleClean(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	err := os.Chdir(originalDir)
-	if err != nil {
-		t.Fatalf("Failed to change directory: %v", err)
-	}
 	defer func() {
 		_ = os.Chdir(originalDir) // Ignore error on defer
 	}()
-	err = os.Chdir(tempDir)
+	err := os.Chdir(tempDir)
 	if err != nil {
 		t.Fatalf("Failed to change to temp directory: %v", err)
 	}
@@ -117,14 +109,10 @@ func TestHandleStash(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	err := os.Chdir(originalDir)
-	if err != nil {
-		t.Fatalf("Failed to change directory: %v", err)
-	}
 	defer func() {
 		_ = os.Chdir(originalDir) // Ignore error on defer
 	}()
-	err = os.Chdir(tempDir)
+	err := os.Chdir(tempDir)
 	if err != nil {
 		t.Fatalf("Failed to change to temp directory: %v", err)
 	}
@@ -175,14 +163,10 @@ func TestHandleStashInvalidContent(t *testing.T) {
 	// Create a temporary directory and change to it
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	err := os.Chdir(originalDir)
-	if err != nil {
-		t.Fatalf("Failed to change directory: %v", err)
-	}
 	defer func() {
 		_ = os.Chdir(originalDir) // Ignore error on defer
 	}()
-	err = os.Chdir(tempDir)
+	err := os.Chdir(tempDir)
 	if err != nil {
 		t.Fatalf("Failed to change to temp directory: %v", err)
 	}

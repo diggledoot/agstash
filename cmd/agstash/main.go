@@ -183,12 +183,6 @@ func handleInitCommand(args []string) {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
-
-	// Assert postcondition - the command should complete without error
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Assertion failed: HandleInit should not return an error\n")
-		os.Exit(1)
-	}
 }
 
 func handleCleanCommand(args []string) {
@@ -204,12 +198,6 @@ func handleCleanCommand(args []string) {
 	err := commands.HandleClean()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Assert postcondition - the command should complete without error
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Assertion failed: HandleClean should not return an error\n")
 		os.Exit(1)
 	}
 }
@@ -229,12 +217,6 @@ func handleStashCommand(args []string) {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
-
-	// Assert postcondition - the command should complete without error
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Assertion failed: HandleStash should not return an error\n")
-		os.Exit(1)
-	}
 }
 
 func handleApplyCommand(args []string) {
@@ -252,12 +234,6 @@ func handleApplyCommand(args []string) {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
-
-	// Assert postcondition - the command should complete without error
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Assertion failed: HandleApply should not return an error\n")
-		os.Exit(1)
-	}
 }
 
 func handleUninstallCommand(args []string) {
@@ -273,12 +249,6 @@ func handleUninstallCommand(args []string) {
 	err := commands.HandleUninstall()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Assert postcondition - the command should complete without error
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Assertion failed: HandleUninstall should not return an error\n")
 		os.Exit(1)
 	}
 }
