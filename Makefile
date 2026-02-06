@@ -1,35 +1,37 @@
-# Makefile for agstash Go project
+# Makefile for agstash Rust project
 
 .PHONY: build test test-coverage clean clean-coverage fmt lint check all
 
 # Build the project
 build:
-	go build -o bin/agstash cmd/agstash/main.go
+	cargo build --release
+	mkdir -p bin
+	cp target/release/agstash bin/agstash
 
 # Run tests
 test:
-	`go env GOPATH`/bin/gotestsum -- ./internal/... ./tests/...
+	cargo test
 
-# Run tests with coverage
+# Run tests with coverage (requires cargo-tarpaulin)
 test-coverage:
-	`go env GOPATH`/bin/gotestsum --format=testname -- -coverprofile=coverage.out ./internal/... ./tests/...
-	go tool cover -html=coverage.out -o coverage.html
+	cargo tarpaulin --out html
 
 # Clean build artifacts
 clean:
-	rm -rf bin/ coverage.out coverage.html
+	cargo clean
+	rm -rf bin/
 
 # Clean coverage files
 clean-coverage:
-	rm -f coverage.out coverage.html
+	rm -f tarpaulin-report.html
 
 # Format code
 fmt:
-	go fmt ./...
+	cargo fmt
 
 # Run linter
 lint:
-	golangci-lint run
+	cargo clippy
 
 # Run all checks
 check: fmt lint test

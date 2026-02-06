@@ -1,0 +1,19 @@
+[package]
+name = "agstash"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.0", features = ["derive"] }  # For command-line argument parsing
+anyhow = "1.0"  # For error handling
+tokio = { version = "1.0", features = ["full"] }  # For async runtime if needed
+dirs = "5.0"  # For getting user home directory
+
+[dev-dependencies]
+tempfile = "3.0"  # For creating temporary directories in tests
+defer = "0.2"  # For cleanup in tests
+serial_test = "3.0"  # For running tests that change working directory serially
+
+[[bin]]
+name = "agstash"
+path = "src/main.rs"

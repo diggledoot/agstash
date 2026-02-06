@@ -18,8 +18,8 @@ make build
 Or build directly:
 
 ```bash
-go build -o agstash cmd/agstash/main.go
-./agstash --help
+cargo build --release
+./target/release/agstash --help
 ```
 
 ## Usage
@@ -38,7 +38,7 @@ agstash help
 To build the project locally:
 
 ```bash
-go build -o agstash cmd/agstash/main.go
+cargo build --release
 ```
 
 ## Development
@@ -49,26 +49,22 @@ The project includes a Makefile with common development tasks:
 make build          # Build the project
 make test           # Run tests
 make clean          # Clean build artifacts
+make fmt            # Format code
+make lint           # Run linter
 ```
 
 ## Testing
 
-To run unit tests with gotestsum:
+To run unit tests:
 
 ```bash
-gotestsum -- ./internal/... ./tests/...
+cargo test
 ```
 
 Or using make:
 
 ```bash
 make test
-```
-
-To run all tests:
-
-```bash
-gotestsum -- ./...
 ```
 
 To run tests with coverage:
